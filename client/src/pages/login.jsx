@@ -5,51 +5,54 @@ import NotRegistered from "./adduser"; // Importing NotRegistered component
 const API_URL = import.meta.env.VITE_API_URL;
 
 function Login() {
-  const [ownid, setOwnID] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isNotRegistered, setIsNotRegistered] = useState(false);
+  const [ownid, setOwnID] = useState(""); // State for ownid
+  const [phone, setPhone] = useState(""); // State for phone
+  const [loading, setLoading] = useState(false); // Loading state
+  const [errorMessage, setErrorMessage] = useState(""); // Error message
+  const [isNotRegistered, setIsNotRegistered] = useState(false); // For checking if user is registered
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMessage("");
-    setIsNotRegistered(false);
+    e.preventDefault(); // Prevent the form from reloading the page
+    setLoading(true); // Set loading state to true
+    setErrorMessage(""); // Reset error message
+    setIsNotRegistered(false); // Reset 'Not Registered' state
 
-    const loginData = { ownid, phone };
+    const loginData = { ownid, phone }; // Data to send
 
     try {
+      // Sending a POST request with login data to the server
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(loginData),
+        body: JSON.stringify(loginData), // Send the loginData object
       });
 
+      // Check if the response is not okay (status not in 200-299 range)
       if (!response.ok) {
         if (response.status === 404) {
-          setIsNotRegistered(true);
+          setIsNotRegistered(true); // User not found, show 'Not Registered' message
           return;
         } else {
-          throw new Error("Invalid credentials");
+          throw new Error("Invalid credentials"); // Handle other errors
         }
       }
 
+      // If login is successful, clear input fields and show success message
       alert("Login successful!");
-      setOwnID("");
-      setPassword("");
+      setOwnID(""); // Reset ownid input
+      setPhone(""); // Reset phone input
     } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage(error.message);
+      console.error("Error:", error); // Log the error
+      setErrorMessage(error.message); // Show error message on UI
     } finally {
-      setLoading(false);
+      setLoading(false); // Set loading state to false
     }
   };
 
   return (
     <div className="form-container">
       {isNotRegistered ? (
-        <NotRegistered />
+        <NotRegistered /> // Show NotRegistered component if user isn't found
       ) : (
         <form onSubmit={handleSubmit} className="form">
           <h2 className="form-title">Gbooking Login</h2>
@@ -58,15 +61,15 @@ function Login() {
             <input
               type="text"
               value={ownid}
-              onChange={(e) => setOwnID(e.target.value)}
+              onChange={(e) => setOwnID(e.target.value)} // Capture ownid input
               placeholder="Your ID"
               required
               className="form-input"
             />
             <input
-              type="phone"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type="text" // Change from "phone" to "text" for input type consistency
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)} // Capture phone input
               placeholder="Phone"
               required
               className="form-input"
@@ -75,7 +78,9 @@ function Login() {
           <button type="submit" className="form-button" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </button>
-          <p className="signup-link">Not registered? <a href="/signup">Sign up here</a></p>
+          <p className="signup-link">
+            Not registered? <a href="/signup">Sign up here</a>
+          </p>
         </form>
       )}
     </div>
