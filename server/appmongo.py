@@ -31,7 +31,7 @@ def home():
 @app.route('/Gbooking', methods=['POST'])
 def add_product():
     data = request.json  # Get JSON data from request
-    if not data or "name" not in data or "email" not in data or "id" not in data or "phone" not in data or "ownid" not in data:
+    if not data or "name" not in data or "email" not in data or "id" not in data or "phone" not in data or "ownid" not in data or "password" not in data:
         return jsonify({"error": "Missing required fields"}), 400
 
     new_user = {
@@ -40,6 +40,7 @@ def add_product():
         "email": data["email"],
         "phone": data["phone"],
         "ownid": data["ownid"],
+        "password":data["password"]
 
     }
     result = user_collection.insert_one(new_user)  # Insert into MongoDB
