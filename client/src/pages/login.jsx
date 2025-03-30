@@ -64,10 +64,10 @@ function Login() {
               className="form-input"
             />
             <input
-              type="password"
+              type="phone"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              placeholder="Phone"
               required
               className="form-input"
             />
