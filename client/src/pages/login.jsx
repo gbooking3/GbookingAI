@@ -17,7 +17,7 @@ function Login() {
     setErrorMessage("");
     setIsNotRegistered(false);
 
-    const loginData = { ownid, password };
+    const loginData = { ownid, phone };
 
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
