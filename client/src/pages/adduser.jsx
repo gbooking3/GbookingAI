@@ -22,7 +22,7 @@ function AddUser() {
     const newItem = { id, name, email, phone, ownid ,password};
 
     try {
-      const response = await fetch(`${API_URL}/Gbooking`, {
+      const response = await fetch(`${API_URL}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newItem),
@@ -82,14 +82,6 @@ function AddUser() {
             value={ownid}
             onChange={(e) => setOwnID(e.target.value)}
             placeholder="Your ID"
-            required
-            className="form-input"
-          />
-               <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
             required
             className="form-input"
           />
