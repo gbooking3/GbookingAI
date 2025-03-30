@@ -2,6 +2,9 @@ from app.extensions import mongo
 
 class User:
     @staticmethod
+    def find_by_ownid(ownid):
+        return mongo.db.users.find_one({"ownid": ownid})
+    @staticmethod
     def find_by_email(email):
         return mongo.db.users.find_one({"email": email})
 
@@ -13,6 +16,12 @@ class User:
     def find_by_email_or_phone(id_value):
         return mongo.db.users.find_one({
             "$or": [{"email": id_value}, {"phone": id_value}]
+        })
+    
+    @staticmethod
+    def find_by_ownid_and_phone(ownid):
+        return mongo.db.users.find_one({
+            "$and": [{"ownid": ownid}]
         })
 
     @staticmethod

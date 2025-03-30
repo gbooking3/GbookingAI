@@ -16,6 +16,12 @@ def register_user(data):
 def login_user(data):
     data = request.get_json()  # Parse the JSON data from the request body
     # Print the received JSON data for debugging
-    print("Received data:", data)    
-    return jsonify({"message": "User registered successfully"}), 201
+    users_collection = mongo.db.users
+    # Find the user with both matching phone and ownid
+    user = users_collection.find_one({"phone": data["phone"], "ownid": data["ownid"]})
+    if user:
+        return jsonify({"message": "User Found"}), 200
+    else:
+        return jsonify({"error": "User Not Found"}), 404
+
 
