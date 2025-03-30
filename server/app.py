@@ -11,9 +11,11 @@ CORS(app, origins=["http://127.0.0.1:5173", "http://localhost:5173"])
 
 
 # Configure MongoDB
+app.config["SECRET_KEY"] = os.getenv('SECRET_KEY')
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
-mongo = PyMongo(app)
-db = mongo.db  # Get the database
+
+mongo_client = PyMongo(app)
+db = mongo_client.db  # Get the database
 
 if db is None:
     print("Database connection failed!")
@@ -46,12 +48,6 @@ def add_product():
     result = user_collection.insert_one(new_user)  # Insert into MongoDB
 
     return jsonify({"message": "Product added", "id": str(result.inserted_id)}), 201
-
-
-
-
-
-
 
 
 
