@@ -2,6 +2,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Add from "./pages/adduser";
 import Login from "./pages/login"
+import Home from "./pages/home"
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
         <Route path="/" element={<Login />}>
         </Route>
         <Route path="/signup" element={<Add />} />
+        <Route path="/home" element={<Home />} />
 
       </Routes>
     </BrowserRouter>
