@@ -6,13 +6,15 @@ on:
       - 'server/**'
 
 jobs:
-  notify:
+  slack_notifier:
     runs-on: ubuntu-latest
     steps:
-      - name: Notify Slack backend channel
+      - name: Send notification on Slack using Webhooks
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":gear: *Push to backend* by ${{ github.actor }} on branch `${{ github.ref_name }}`.\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|View Commit>"
+            }
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BACKEND }}
-        run: |
-          curl -X POST -H 'Content-type: application/json' --data "{
-            \"text\": \":gear: *Push to backend* by ${GITHUB_ACTOR} on branch ${GITHUB_REF#refs/heads/}.\n<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}|View Commit>\"
-          }" $SLACK_WEBHOOK
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_BACKEND }}
