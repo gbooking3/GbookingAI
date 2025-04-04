@@ -17,4 +17,4 @@ jobs:
               "text": ":art: *Push to frontend* by ${{ github.actor }} on branch `${{ github.ref_name }}`.\\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|View Commit>"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_FRONTEND }}
+          SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
