@@ -13,6 +13,10 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_FRONTEND }}
         run: |
-          curl -X POST -H 'Content-type: application/json' --data "{
-            \"text\": \":art: *Push to frontend* by ${GITHUB_ACTOR} on branch ${GITHUB_REF#refs/heads/}.\n<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}|View Commit>\"
-          }" $SLACK_WEBHOOK
+          payload=$(cat <<EOF
+          {
+            "text": ":art: *Push to frontend* by ${GITHUB_ACTOR} on branch ${GITHUB_REF#refs/heads/}.\n<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}|View Commit>"
+          }
+          EOF
+          )
+          curl -X POST -H "Content-Type: application/json" -d "$payload" "$SLACK_WEBHOOK"
