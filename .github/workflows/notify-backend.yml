@@ -1,0 +1,18 @@
+name: Notify Backend on Push
+
+on:
+  push:
+    paths:
+      - 'server/**'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack backend channel
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BACKEND }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data "{
+            \"text\": \":gear: *Push to backend* by ${GITHUB_ACTOR} on branch ${GITHUB_REF#refs/heads/}.\n<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}|View Commit>\"
+          }" $SLACK_WEBHOOK
