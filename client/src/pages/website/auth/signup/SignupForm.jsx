@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import './AddUser.css'; // Importing the CSS file for styling
+import  { useState } from "react";
+import './SignupPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function AddUser() {
+function SignupForm() {
   const [id, setID] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -98,4 +98,4 @@ function AddUser() {
   );
 }
 
-export default AddUser;
+export default SignupForm;

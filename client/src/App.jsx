@@ -1,22 +1,16 @@
-import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Add from "./pages/adduser";
-import Login from "./pages/login"
-import Home from "./pages/home"
+import SignupPage from "./pages/website/auth/signup/SignupPage";
+import LoginPage from "./pages/website/auth/login/LoginPage"
+import HomePage from "./pages/home/HomePage"
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />}>
-        </Route>
-        <Route path="/signup" element={<Add />} />
-        <Route path="/home" element={<Home />} />
-
+        <Route path="/" element={<LoginPage />}/>
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/home" element={<HomePage />} />
       </Routes>
     </BrowserRouter>
   );
 }
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);

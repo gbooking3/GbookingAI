@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
-import "./AddUser.css";
-import NotRegistered from "./adduser";
+import "./LoginPage.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function Login() {
+function LoginForm() {
   const [ownid, setOwnID] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
@@ -94,4 +93,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default LoginForm;
