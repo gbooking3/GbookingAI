@@ -23,6 +23,11 @@ import { createContext, useState } from "react";
 export const User = createContext({});
 
 export default function UserProvider({ children }) {
-  const [auth, setAuth] = useState({});
+  const [auth, setAuth] = useState(() => {
+    const access_token = localStorage.getItem("access_token");
+    const userDetails = localStorage.getItem("user_details");
+    return access_token ? { access_token, userDetails: JSON.parse(userDetails) } : {};
+  });
+  
   return <User.Provider value={{ auth, setAuth }}>{children}</User.Provider>;
 }

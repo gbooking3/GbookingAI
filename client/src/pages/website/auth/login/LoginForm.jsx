@@ -1,8 +1,11 @@
-import  { useState } from "react";
+import  { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import Cookies from "universal-cookie";
+import { User } from '../../context/UserContext'
 import "./LoginPage.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
+import { apiPost } from '../../../../api/apiMethods';
+
 
 function LoginForm() {
   const [ownid, setOwnID] = useState("");
@@ -10,9 +13,14 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isNotRegistered, setIsNotRegistered] = useState(false);
-  
+  const userContext = useContext(User);
   const navigate = useNavigate(); // Initialize navigate function
 
+
+  // cookie
+  const cookie = new Cookies();
+
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -20,36 +28,37 @@ function LoginForm() {
     setIsNotRegistered(false);
 
     const loginData = { ownid, phone };
-
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(loginData),
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          alert("User Not Founded");
-          return;
-        } else {
-          throw new Error("Invalid credentials");
-        }
-      }
-
+      const response = await apiPost('auth/login', loginData);
+    
+      const { access_token, refresh_token, user_details } = response;
+    
       alert("Login successful!");
-      setOwnID("");
-      setPhone("");
+      cookie.set("Bearer", access_token);
 
-      // **Redirect to Home page after successful login**
-      navigate("/home"); 
+      cookie.set("access_token", response.access_token);
+      cookie.set("refresh_token", response.refresh_token);
 
+      console.log(response)
+      userContext.setAuth({
+        access_token,
+        refresh_token,
+        userDetails: user_details,
+      });
+      navigate("/home");
+    
     } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage(error.message);
-    } finally {
-      setLoading(false);
+      if (error.response && error.response.status === 404) {
+        alert("User Not Founded");
+        setIsNotRegistered(true);
+      } else if (error.response && error.response.status === 401) {
+        setErrorMessage("Invalid credentials");
+      } else {
+        console.error("Login error:", error);
+        setErrorMessage("Something went wrong. Please try again.");
+      }
     }
+    
   };
 
   return (

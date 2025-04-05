@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-catch */
-import api from "./axios";
+import api from "./axiosLib";
 
 
 /**
