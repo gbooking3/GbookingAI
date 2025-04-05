@@ -26,3 +26,35 @@ def login_user(data):
         "refresh_token": refresh_token,
         "user_details": User.to_json(user)
     }), 200
+
+
+def refresh_token(data):
+    
+    refresh_token = data.get("refresh_token")
+
+    if not refresh_token:
+        return jsonify({"error": "Missing refresh token"}), 400
+
+    decoded = decode_token(refresh_token, is_refresh=True)
+    if not decoded:
+        return jsonify({"error": "Invalid or expired refresh token"}), 403
+
+    ownid = decoded["ownid"]
+    
+    
+    from app.models.user import get_user_by_ownid
+    user = get_user_by_ownid(ownid)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    
+    new_access_token = create_access_token({"ownid": ownid})
+    new_refresh_token = refresh_token 
+
+    
+    return jsonify({
+        "access_token": new_access_token,
+        "refresh_token": new_refresh_token,
+        "user_details": User.to_json(user)
+
+    }), 200
