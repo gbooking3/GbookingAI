@@ -9,7 +9,6 @@ bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
 @bp.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-    print("aaaaaaaaaaaaaaaaaaaaaaaaaaa",data)
     return register_user(data)
 
 @bp.route('/login', methods=['POST'])

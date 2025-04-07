@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Cookies from "universal-cookie";
 import { User } from '../../context/UserContext'
 import "./LoginPage.css";
-
 import { apiPost } from '../../../../api/apiMethods';
 
 

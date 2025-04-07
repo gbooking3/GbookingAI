@@ -1,6 +1,6 @@
 from flask import jsonify
 from app.extensions import mongo
-from app.utils.jwt_utils import create_access_token, create_refresh_token
+from app.utils.jwt_utils import create_access_token, create_refresh_token,decode_token
 from app.models.user import User
 
 def register_user(data):
@@ -42,8 +42,8 @@ def refresh_token(data):
     ownid = decoded["ownid"]
     
     
-    from app.models.user import get_user_by_ownid
-    user = get_user_by_ownid(ownid)
+  
+    user = User.find_by_ownid(ownid)
     if not user:
         return jsonify({"error": "User not found"}), 404
 

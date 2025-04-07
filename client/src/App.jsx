@@ -5,6 +5,7 @@ import HomePage from "./pages/home/HomePage";
 import PersistLogin from "./pages/website/auth/login/PersistLogin";
 import RequireAuth from "./pages/website/auth/login/RequireAuth";
 import UserProvider from "./pages/website/context/UserContext"; 
+
 export default function App() {
   return (
     <UserProvider> 
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route element={<PersistLogin />}>
             <Route element={<RequireAuth />}>
+
               <Route path="/home" element={<HomePage />} />
             </Route>
           </Route>
