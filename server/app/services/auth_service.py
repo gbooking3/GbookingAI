@@ -3,6 +3,10 @@ from app.extensions import mongo
 from app.utils.jwt_utils import create_access_token, create_refresh_token,decode_token
 from app.models.user import User
 
+#email
+import smtplib
+import random
+from email.message import EmailMessage
 def register_user(data):
     if mongo.db.users.find_one({"email": data["email"]}):
         return jsonify({"error": "Email already exists"}), 400
@@ -58,6 +62,29 @@ def refresh_token(data):
         "user_details": User.to_json(user)
 
     }), 200
+
+
+
+def generate_otp(length=6):
+    return ''.join(str(random.randint(0, 9)) for _ in range(length))
+
+def send_otp_yandex(sender_email, sender_password, recipient_email):
+    otp = generate_otp()
+    
+    msg = EmailMessage()
+    msg['Subject'] = 'Your OTP Code'
+    msg['From'] = sender_email
+    msg['To'] = recipient_email
+    msg.set_content(f'Your OTP code is: {otp}')
+
+    try:
+        with smtplib.SMTP_SSL('smtp.yandex.com', 465) as smtp:
+            smtp.login(sender_email, sender_password)
+            smtp.send_message(msg)
+        print(f"OTP sent to {recipient_email}: {otp}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+    return otp    
 
 
 
