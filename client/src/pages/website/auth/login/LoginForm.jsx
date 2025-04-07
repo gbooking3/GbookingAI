@@ -44,7 +44,7 @@ function LoginForm() {
         refresh_token,
         userDetails: user_details,
       });
-      navigate("/home");
+      navigate("/otp");
     
     } catch (error) {
       if (error.response && error.response.status === 404) {
