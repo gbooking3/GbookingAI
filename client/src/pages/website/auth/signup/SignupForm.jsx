@@ -1,5 +1,6 @@
 import  { useState } from "react";
 import './SignupPage.css';
+import { apiPost } from '../../../../api/apiMethods';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -19,26 +20,15 @@ function SignupForm() {
     setLoading(true);
     setErrorMessage(""); // Reset any previous error messages
 
-    const newItem = { id, name, email, phone, ownid ,password};
+    const newItem = {  name, email, phone, ownid };
 
     try {
-      const response = await fetch(`${API_URL}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newItem),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add user");
-      }
-
+      const response = await apiPost('auth/signup',  newItem)
       alert("User added successfully!");
-      setID(id + 1); // This is only needed if you need to increment the ID manually
       setName("");
       setEmail("");
       setPhone("");
       setOwnID("");
-      setPassword("");
     } catch (error) {
       console.error("Error:", error);
       setErrorMessage("There was an issue adding the user. Please try again.");
