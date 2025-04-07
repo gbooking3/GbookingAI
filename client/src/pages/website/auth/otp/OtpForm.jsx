@@ -23,7 +23,7 @@ function OTPForm() {
       }));
 
       alert("OTP Verified!");
-      navigate("/home");
+      navigate("/dashboard");
     } catch (error) {
       if (error.response && error.response.status === 400) {
         setErrorMessage("Invalid OTP. Please try again.");
