@@ -8,7 +8,7 @@ import { apiPost } from '../../../../api/apiMethods';
 
 function LoginForm() {
   const [ownid, setOwnID] = useState("");
-  const [phone, setPhone] = useState("");
+  const [email, setMail] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isNotRegistered, setIsNotRegistered] = useState(false);
@@ -26,7 +26,7 @@ function LoginForm() {
     setErrorMessage("");
     setIsNotRegistered(false);
 
-    const loginData = { ownid, phone };
+    const loginData = { ownid, email };
     try {
       const response = await apiPost('auth/login', loginData);
     
@@ -82,9 +82,9 @@ function LoginForm() {
             />
             <input
               type="text"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Phone"
+              value={email}
+              onChange={(e) => setMail(e.target.value)}
+              placeholder="Email"
               required
               className="form-input"
             />

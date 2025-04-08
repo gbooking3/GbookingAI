@@ -18,9 +18,9 @@ def login():
      data = request.get_json()
      # Generate OTP
      global generated_otp
-    
+     mail=data.get("email")
      
-     generated_otp=send_otp_yandex('mohamedabohamad@yandex.com','qoebhhdmafgowgjn','mohamed.abha96@gmail.com')
+     generated_otp=send_otp_yandex('mohamedabohamad@yandex.com','qoebhhdmafgowgjn',mail)
 
      return login_user(data)
 

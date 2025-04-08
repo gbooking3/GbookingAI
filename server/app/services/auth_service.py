@@ -15,7 +15,7 @@ def register_user(data):
 
 def login_user(data):
     user = mongo.db.users.find_one({
-        "phone": data["phone"],
+        "email": data["email"],
         "ownid": data["ownid"]
     })
     if not user:
