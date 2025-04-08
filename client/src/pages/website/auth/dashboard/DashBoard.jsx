@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { User } from '../../context/UserContext'; // Make sure path is correct
 
 function ChatBot() {
+  
   const [messages, setMessages] = useState([
-    { from: "bot", text: "👋 Hi! How can I help you today?" }
+    { from: "bot", text: "👋 Hi! How can I help you today" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // 👤 Get user info from context
+  const userContext = useContext(User);
+  const user = userContext?.auth?.userDetails || {};
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -19,7 +25,6 @@ function ChatBot() {
     setLoading(true);
 
     try {
-      // Simulate bot reply
       setTimeout(() => {
         const botMessage = {
           from: "bot",
@@ -39,6 +44,26 @@ function ChatBot() {
       <div className="form">
         <h2 className="form-title">Gbooking ChatBot</h2>
 
+        {/* 👤 User profile card */}
+        <div style={{
+          backgroundColor: "#e3f2fd",
+          padding: "12px 16px",
+          borderRadius: "10px",
+          marginBottom: "16px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          fontSize: "14px",
+          color: "#333",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+        }}>
+          <div>
+            <b>{user.name || "No Name"}</b><br />
+          </div>
+          <span style={{ fontSize: "24px" }}>👤</span>
+        </div>
+
+        {/* Chat messages */}
         <div
           style={{
             flex: 1,
@@ -73,6 +98,7 @@ function ChatBot() {
 
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
+        {/* Input box */}
         <form onSubmit={handleSend} className="form-inputs" style={{ display: "flex", gap: "8px" }}>
           <input
             type="text"
