@@ -4,6 +4,7 @@ import LoginPage from "./pages/website/auth/login/LoginPage";
 import HomePage from "./pages/home/HomePage";
 import OtpPage from "./pages/website/auth/otp/OtpPage";
 import DashBoard from "./pages/website/auth/dashboard/DashBoard";
+import Profile from "./pages/website/auth/dashboard/UserProfile";
 
 import PersistLogin from "./pages/website/auth/login/PersistLogin";
 import RequireAuth from "./pages/website/auth/login/RequireAuth";
@@ -25,6 +26,7 @@ export default function App() {
 
               <Route path="/home" element={<HomePage />} />
               <Route path="/dashboard" element={<DashBoard />} />
+              <Route path="/profile" element={<Profile />} />
 
               
             </Route>
