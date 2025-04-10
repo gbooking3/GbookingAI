@@ -1,4 +1,4 @@
-import  { useState, useContext } from "react";
+import  { useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Cookies from "universal-cookie";
 import { User } from '../../context/UserContext'
@@ -14,7 +14,7 @@ import {REGEX, REGEX_MESSAGES, ROUTE_PATHS, API_ENDPOINTS} from '../../../../uti
 function LoginForm() {
   const [contactMethod, setContactMethod] = useState("email"); // default is "email"
 
-  
+  const errRef = useRef()
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isNotRegistered, setIsNotRegistered] = useState(false);
@@ -28,7 +28,7 @@ function LoginForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setErrorMessage("")
     setLoading(true);
     setIsNotRegistered(false);
   
@@ -57,15 +57,13 @@ function LoginForm() {
       navigate( ROUTE_PATHS.AUTH.OTP);
 
     } catch (error) {
-      if (error.response?.status === 404) {
-        alert("User Not Found");
-        setIsNotRegistered(true);
-      } else if (error.response?.status === 401) {
-        setErrorMessage("Invalid credentials");
-      } else {
-        console.error("Login error:", error);
-        setErrorMessage("Something went wrong. Please try again.");
+      if (!error?.response) {
+        setErrorMessage("No Server Response");
       }
+      else if (error.response?.status === 404) {
+       const errMSG = error.response.data?.error;
+       setErrorMessage(errMSG || "Somthing Went Wrong")
+      } 
     } finally {
       setLoading(false); // 🔥 This ensures loading stops in both success and error
     }
@@ -82,7 +80,13 @@ function LoginForm() {
       ) : (
         <form onSubmit={handleSubmit} className="form">
           <h2 className="form-title">Gbooking Login</h2>
-          {errorMessage && <p className="error-message">{errorMessage}</p>}
+          <p
+            ref={errRef}
+            className={errorMessage ? "errmsg" : "offscreen"}
+            aria-live="assertive"
+          >
+            {errorMessage}
+          </p>
           <div className="form-inputs">
             <InputField
               type="text"

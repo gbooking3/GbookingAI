@@ -135,4 +135,37 @@ body {
   }
   
 
+
+  .offscreen {
+    position: absolute;
+    left: -9999px;
+  }
   
+  .hide {
+    display: none;
+  }
+  
+  .valid {
+    color: limegreen;
+    margin-left: 0.25rem;
+  }
+  
+  .invalid {
+    color: red;
+    margin-left: 0.25rem;
+  }
+    
+.errmsg {
+  background-color: lightpink;
+  color: firebrick;
+  font-weight: bold;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.successmsg {
+  background-color: rgb(118, 190, 118); /* Change the background color to green */
+  color: darkgreen; /* Change the text color to dark green */
+  font-weight: bold;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}

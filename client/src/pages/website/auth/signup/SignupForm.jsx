@@ -21,42 +21,81 @@ function SignupForm() {
   const userEmail = useInput("", REGEX.EMAIL, REGEX_MESSAGES.EMAIL);
   const userPhone = useInput("", REGEX.PHONE, REGEX_MESSAGES.PHONE);
   const userName  = useInput("", REGEX.NAME , REGEX_MESSAGES.NAME );
-
+  
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  /**
+ * Validates an Israeli ID number using the official checksum algorithm.
+ * @param {string | number} id - The ID number as a string or number.
+ * @returns {boolean} True if the ID is valid, false otherwise.
+ */
 
-  const handleSubmit = async (e) => {
-    setErrMsg("");
-    // Prevent the default form submission behavior
-    e.preventDefault();
-    setLoading(true);
-    setErrorMessage("");
+  const  validateIsraeliID = (id) => {
+    // Convert to string and remove any whitespace
+    id = String(id).trim();
 
-    // Validate form fields
-    if (
-      !userId.valid ||
-      !userEmail.valid ||
-      !userPhone.valid ||
-      !userName.valid 
-    ) {
-      setErrMsg("Invalid Entry");
-      return;
+    // ID must be 5 to 9 digits
+    if (!/^\d{5,9}$/.test(id)) return false;
+
+    // Pad with leading zeros if less than 9 digits
+    id = id.padStart(9, '0');
+
+    let sum = 0;
+
+    for (let i = 0; i < 9; i++) {
+      let digit = Number(id[i]);
+      let multiplied = digit * ((i % 2) + 1);
+
+      // If the result is more than 9, subtract 9 (same as adding the digits)
+      if (multiplied > 9) multiplied -= 9;
+
+      sum += multiplied;
     }
 
-    const newItem = {  
-      ownid:  userId.value, 
-      email: userEmail.value,  
-      phone: userPhone.value, 
-      name: userName.value, 
-    };
+    return sum % 10 === 0;
+  }
 
+  const handleSubmit = async (e) => {
     try {
-      const response = await apiPost(API_ENDPOINTS.AUTH.SIGNUP,  newItem)
+      setErrMsg("");
+      // Prevent the default form submission behavior
+      e.preventDefault();
+      setLoading(true);
+      setErrorMessage("");
+
+      // Validate form fields
+      if (
+        !userId.valid ||
+        !userEmail.valid ||
+        !userPhone.valid ||
+        !userName.valid 
+      ) {
+        setErrMsg("Invalid Entry");
+        return;
+      }
+
+      if (!validateIsraeliID(userId.value)){
+        setErrMsg("Not Valid ID Number.")
+        return;
+      }
+      const user = {  
+        ownid:  userId.value, 
+        email: userEmail.value,  
+        phone: userPhone.value, 
+        name: userName.value, 
+      };
+
+      const response = await apiPost(API_ENDPOINTS.AUTH.SIGNUP,  user)
     
       navigate(ROUTE_PATHS.AUTH.LOGIN);
-    } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage("There was an issue adding the user. Please try again.");
+
+    } catch (err) {
+      if (!err?.response) {
+        setErrMsg("No Server Response");
+      } else if (err.response?.status === 400) {
+        const errMessage =  err.response.data?.error;
+        setErrMsg(errMessage || "Somthing Went Wrong")
+      } 
     } finally {
       setLoading(false);
     }
