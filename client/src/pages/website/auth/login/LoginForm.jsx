@@ -27,7 +27,7 @@ function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
+    setLoading(true);
     setIsNotRegistered(false);
   
     const loginData = { ownid: userId.value, email };
