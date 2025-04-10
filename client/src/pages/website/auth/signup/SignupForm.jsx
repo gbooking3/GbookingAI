@@ -44,10 +44,10 @@ function SignupForm() {
     }
 
     const newItem = {  
-      name:  userId.value, 
+      ownid:  userId.value, 
       email: userEmail.value,  
       phone: userPhone.value, 
-      ownid: userName.value, 
+      name: userName.value, 
     };
 
     try {

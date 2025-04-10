@@ -6,13 +6,15 @@ import "./LoginPage.css";
 import { apiPost } from '../../../../api/apiMethods';
 import InputField from '../../../../components/input_field/InputField'
 import Auth_Button from '../../../../components/button/Auth_Button'
+import ContactMethodSelector from '../../../../components/selector/ContactMethodSelector'
 import useInput from '../../../../hooks/useFormInput'
 import {REGEX, REGEX_MESSAGES, ROUTE_PATHS, API_ENDPOINTS} from '../../../../utils/consts'
 
 
 function LoginForm() {
-  // const [ownid, setOwnID] = useState("");
-  const [email, setMail] = useState("");
+  const [contactMethod, setContactMethod] = useState("email"); // default is "email"
+
+  
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isNotRegistered, setIsNotRegistered] = useState(false);
@@ -30,7 +32,13 @@ function LoginForm() {
     setLoading(true);
     setIsNotRegistered(false);
   
-    const loginData = { ownid: userId.value, email };
+    // const loginData = { ownid: userId.value, email };
+    const loginData = {
+      ownid: userId.value,
+      method: contactMethod,
+    };
+    
+    
   
     try {
       const response = await apiPost(API_ENDPOINTS.AUTH.LOGIN, loginData);
@@ -86,16 +94,11 @@ function LoginForm() {
               blur={userId.handleBlur}
               placeholder=""
               instruction={userId.instruction}
-           
             />
-            <input
-              type="text"
-              value={email}
-              onChange={(e) => setMail(e.target.value)}
-              placeholder="Email"
-              required
-              className="form-input"
-            />
+
+            <ContactMethodSelector method={contactMethod} setMethod={setContactMethod} />
+
+
           </div>
           <Auth_Button validation={userId.valid} name="Login" loading={loading} />
 

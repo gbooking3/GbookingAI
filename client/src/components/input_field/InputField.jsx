@@ -20,7 +20,7 @@ const InputField = ({
   allowInstructionMessages = true,
 }) => {
   return (
-    <div className="mb-1">
+    <div className="mb-3">
       <div className="position-relative">
         <MDBInput
           wrapperClass="mb-0"

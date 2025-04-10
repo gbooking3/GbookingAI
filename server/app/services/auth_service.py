@@ -13,14 +13,7 @@ def register_user(data):
     User.create_user(data)
     return jsonify({"message": "User registered successfully"}), 201
 
-def login_user(data):
-    user = mongo.db.users.find_one({
-        "email": data["email"],
-        "ownid": data["ownid"]
-    })
-    if not user:
-        return jsonify({"error": "User Not Found"}), 404
-
+def login_user(user):
     payload = {"ownid": user["ownid"]}
     access_token = create_access_token(payload)
     refresh_token = create_refresh_token(payload)
@@ -30,6 +23,7 @@ def login_user(data):
         "refresh_token": refresh_token,
         "user_details": User.to_json(user)
     }), 200
+
 
 
 def refresh_token(data):
