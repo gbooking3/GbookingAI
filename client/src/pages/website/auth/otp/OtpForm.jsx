@@ -16,7 +16,7 @@ function OTPForm() {
     setErrorMessage("");
 
     try {
-      const response = await apiPost("auth/verifyotp", { otp });
+      const response = await apiPost("auth/verify-otp", { otp });
       userContext.setAuth((prev) => ({
         ...prev,
         isVerified: true,

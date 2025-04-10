@@ -2,3 +2,5 @@ axios==1.8.4
 universal-cookie==8.0.1
 tailwindcss 
 @tailwindcss/vite
+mdb-react-ui-kit
+@fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/react-fontawesome

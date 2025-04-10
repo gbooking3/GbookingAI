@@ -10,17 +10,24 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.0.6",
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@tailwindcss/vite": "^4.1.3",
     "axios": "^1.8.4",
+    "bootstrap": "^5.3.5",
+    "mdb-react-ui-kit": "^9.0.0",
     "react": "^18.2.0",
+    "react-bootstrap": "^2.10.9",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.1.5",
     "universal-cookie": "^8.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.3",
+    "@types/react": "^18.2.41",
+    "@types/react-dom": "^18.2.14",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.19.0",
@@ -29,7 +36,7 @@
     "eslint-plugin-react-refresh": "^0.4.18",
     "globals": "^15.14.0",
     "postcss": "^8.5.3",
-    "tailwindcss": "^4.0.17",
+    "tailwindcss": "^4.1.3",
     "vite": "^6.1.0"
   }
 }

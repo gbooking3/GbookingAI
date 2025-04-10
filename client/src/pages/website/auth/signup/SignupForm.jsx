@@ -1,34 +1,59 @@
-import  { useState } from "react";
+/* eslint-disable no-unused-vars */
+import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import './SignupPage.css';
 import { apiPost } from '../../../../api/apiMethods';
+import InputField from '../../../../components/input_field/InputField'
+import Auth_Button from '../../../../components/button/Auth_Button'
+import useInput from '../../../../hooks/useFormInput'
+import {REGEX, REGEX_MESSAGES, ROUTE_PATHS, API_ENDPOINTS} from '../../../../utils/consts'
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 function SignupForm() {
-  const [id, setID] = useState(0);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [ownid, setOwnID] = useState("");
-  const [password, setPassword] = useState("");
+  const errRef = useRef();
+  const [errMsg, setErrMsg] = useState("");
+
+  const navigate = useNavigate(); // Initialize navigate function
+
+
+  const userId    = useInput("", REGEX.ID   , REGEX_MESSAGES.ID   );
+  const userEmail = useInput("", REGEX.EMAIL, REGEX_MESSAGES.EMAIL);
+  const userPhone = useInput("", REGEX.PHONE, REGEX_MESSAGES.PHONE);
+  const userName  = useInput("", REGEX.NAME , REGEX_MESSAGES.NAME );
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e) => {
+    setErrMsg("");
+    // Prevent the default form submission behavior
     e.preventDefault();
     setLoading(true);
-    setErrorMessage(""); // Reset any previous error messages
+    setErrorMessage("");
 
-    const newItem = {  name, email, phone, ownid };
+    // Validate form fields
+    if (
+      !userId.valid ||
+      !userEmail.valid ||
+      !userPhone.valid ||
+      !userName.valid 
+    ) {
+      setErrMsg("Invalid Entry");
+      return;
+    }
+
+    const newItem = {  
+      name:  userId.value, 
+      email: userEmail.value,  
+      phone: userPhone.value, 
+      ownid: userName.value, 
+    };
 
     try {
-      const response = await apiPost('auth/signup',  newItem)
-      alert("User added successfully!");
-      setName("");
-      setEmail("");
-      setPhone("");
-      setOwnID("");
+      const response = await apiPost(API_ENDPOINTS.AUTH.SIGNUP,  newItem)
+    
+      navigate(ROUTE_PATHS.AUTH.LOGIN);
     } catch (error) {
       console.error("Error:", error);
       setErrorMessage("There was an issue adding the user. Please try again.");
@@ -41,48 +66,75 @@ function SignupForm() {
     <div className="form-container">
       <form onSubmit={handleSubmit} className="form">
         <h2 className="form-title">Gbooking Register</h2>
-        {errorMessage && <p className="error-message">{errorMessage}</p>}
-        <div className="form-inputs">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Full Name"
-            required
-            className="form-input"
-          />
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            required
-            className="form-input"
-          />
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Phone"
-            required
-            className="form-input"
-          />
-          <input
-            type="text"
-            value={ownid}
-            onChange={(e) => setOwnID(e.target.value)}
-            placeholder="Your ID"
-            required
-            className="form-input"
-          />
-        </div>
-        <button
-          type="submit"
-          className="form-button"
-          disabled={loading}
-        >
-          {loading ? "Adding..." : "Add User"}
-        </button>
+          <section>
+              <p
+                ref={errRef}
+                className={errMsg ? "errmsg" : "offscreen"}
+                aria-live="assertive"
+              >
+                {errMsg}
+              </p>
+          <div className="form-inputs">
+          <InputField
+                type        = "text"
+                label       = "Full Name"
+                value       = {userName.value}
+                onChange    = {userName.handleChange}
+                valid       = {userName.valid}
+                focus       = {userName.handleFocus}
+                blur        = {userName.handleBlur}
+                placeholder = ""
+                instruction = {userName.instruction}
+             
+              />
+          <InputField
+                type        = "email"
+                label       = "Email"
+                value       = {userEmail.value}
+                onChange    = {userEmail.handleChange}
+                valid       = {userEmail.valid}
+                focus       = {userEmail.handleFocus}
+                blur        = {userEmail.handleBlur}
+                placeholder = ""
+                instruction = {userEmail.instruction}
+               
+              />
+          <InputField
+                type        = "tel"
+                label       = "Phone"
+                value       = {userPhone.value}
+                onChange    = {userPhone.handleChange}
+                valid       = {userPhone.valid}
+                focus       = {userPhone.handleFocus}
+                blur        = {userPhone.handleBlur}
+                placeholder = ""
+                instruction = {userPhone.instruction}
+              
+              />
+          <InputField
+                type        = "text"
+                label       = "ID"
+                value       = {userId.value}
+                onChange    = {userId.handleChange}
+                valid       = {userId.valid}
+                focus       = {userId.handleFocus}
+                blur        = {userId.handleBlur}
+                placeholder = ""
+                instruction = {userId.instruction}
+              
+              />
+
+          </div>
+          <Auth_Button validation={userId.valid && userEmail.valid && userName.valid && userPhone.valid} name="Create Account" loading={loading} />
+          
+          <p className="m-2">
+              Already Registered ?{" "}
+              <span className="line">
+                <Link to={ROUTE_PATHS.AUTH.LOGIN}>Login</Link>
+              </span>
+            </p>
+
+        </section>
       </form>
     </div>
   );

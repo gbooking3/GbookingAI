@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { User } from "../../context/UserContext";
 import Cookies from "universal-cookie";
-import Loading from "../../../../components/Loading";
+import Loading from "../../../../components/loading/Loading";
 import { apiPost } from '../../../../api/apiMethods';
 
 export default function PersistLogin() {
@@ -18,7 +18,7 @@ export default function PersistLogin() {
     async function refresh() {
       console.log("Attempting to refresh token...");
       try {
-        const res = await apiPost('auth/refresh', {
+        const res = await apiPost('auth/refresh-token', {
           refresh_token: refreshToken
         });
 

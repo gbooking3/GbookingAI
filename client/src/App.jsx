@@ -10,27 +10,38 @@ import PersistLogin from "./pages/website/auth/login/PersistLogin";
 import RequireAuth from "./pages/website/auth/login/RequireAuth";
 import UserProvider from "./pages/website/context/UserContext"; 
 
+import NotFoundPage from './missing/NotFoundPage'
+import {ROUTE_PATHS} from './utils/consts'
+
 export default function App() {
   return (
     <UserProvider> 
       <BrowserRouter>
         <Routes>
           {/* Redirect root (/) to /login */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path={ROUTE_PATHS.MAIN.HOME} element={<Navigate to={ROUTE_PATHS.AUTH.LOGIN} replace />} />
+          {/* public routes */}
+          
+          {/* Auth */}
+          <Route path={ROUTE_PATHS.AUTH.LOGIN}  element={<LoginPage />} />
+          <Route path={ROUTE_PATHS.AUTH.SIGNUP} element={<SignupPage />} />
+          <Route path={ROUTE_PATHS.AUTH.OTP}    element={<OtpPage />} />
 
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/otp" element={<OtpPage />} />
+          {/* Protected Routes */}
           <Route element={<PersistLogin />}>
             <Route element={<RequireAuth />}>
 
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/dashboard" element={<DashBoard />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route path={ROUTE_PATHS.MAIN.HOME}      element={<HomePage />} />
+              <Route path={ROUTE_PATHS.MAIN.DASHBOARD} element={<DashBoard />} />
+              <Route path={ROUTE_PATHS.MAIN.PROFILE}   element={<Profile />} />
 
               
             </Route>
           </Route>
+
+          {/* Errors */}
+          {/* catch all */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </UserProvider>

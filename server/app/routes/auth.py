@@ -24,7 +24,7 @@ def login():
 
      return login_user(data)
 
-@bp.route('/refresh', methods=['POST'])
+@bp.route('/refresh-token', methods=['POST'])
 def refresh():
     if not request.is_json:
         return jsonify({"error": "Content-Type must be application/json"}), 400
@@ -32,7 +32,7 @@ def refresh():
     return refresh_token(data)
 
 
-@bp.route('/verifyotp', methods=['POST'])
+@bp.route('/verify-otp', methods=['POST'])
 def verify_otp():
 
      if not request.is_json:
