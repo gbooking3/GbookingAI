@@ -26,7 +26,7 @@ function OTPForm() {
       navigate("/dashboard");
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        setErrorMessage("Invalid OTP. Please try again.");
+        setErrorMessage(error.response.data?.error);
       } else {
         console.error("OTP verification error:", error);
         setErrorMessage("Something went wrong. Please try again.");

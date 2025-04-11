@@ -6,7 +6,7 @@ from app.services.auth_service import (
 from app.models.user import User
 
 bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
-generated_otp_store = {}  
+generated_otp   =None
 
 
 @bp.route('/signup', methods=['POST'])
@@ -28,10 +28,8 @@ def login():
     method = data.get("method")
     contact_value = User.find_by_ownid(ownid)
     email = contact_value["email"]
-
     print("The email is : ",email)
-    
-    
+    global generated_otp
     user = User.find_by_ownid(ownid)
     if not user:
         return jsonify({ "error": "Invalid credentials" }), 404
@@ -50,7 +48,7 @@ def login():
     else:
         return jsonify({"error": "Invalid contact method"}), 400
 
-    generated_otp_store[ownid] = otp
+    generated_otp = otp
     return login_user_by_ownid(ownid)
 
 
@@ -59,13 +57,12 @@ def verify_otp():
     data = request.get_json()
     ownid = data.get("ownid")
     otp = data.get("otp")
-    stored_otp = generated_otp_store.get(ownid)
-    print(stored_otp[0])
-    if not ownid or not otp:
-        return jsonify({"error": "Missing ownid or otp"}), 400
+    stored_otp = generated_otp 
+    print("                ",stored_otp)
+    print(type(otp))
+    print(type(stored_otp))
 
-  
-    if not stored_otp or stored_otp != str(otp):
+    if stored_otp != otp:
         return jsonify({"error": "OTP is wrong"}), 400
 
     return jsonify({"message": "OTP verified successfully"}), 200
