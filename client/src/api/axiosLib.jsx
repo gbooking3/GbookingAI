@@ -41,7 +41,7 @@ import axios from "axios";
 
 // Create and export the custom axios instance
 const api = axios.create({
-  baseURL: "http://192.168.1.166:5000/api/v1/", // Update this to your actual API base URL
+  baseURL: "http://10.0.0.21:5000/api/v1/", // Update this to your actual API base URL
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -77,7 +77,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refresh_token");
 
-        const res = await axios.post("http://192.168.1.166:5000/api/v1/auth/refresh-token", {
+        const res = await axios.post("http://10.0.0.21:5000/api/v1/auth/refresh-token", {
           refresh_token: refreshToken,
         });
 

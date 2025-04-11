@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { User } from '../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { apiPost } from '../../../../api/apiMethods';
 
 function ChatBot() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ function ChatBot() {
     setInput("");
     setErrorMessage("");
     setLoading(true);
-
+    const response = await apiPost("auth/send",  userMessage.text );
     try {
       setTimeout(() => {
         const botMessage = {

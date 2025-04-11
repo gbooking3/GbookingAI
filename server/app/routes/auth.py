@@ -68,9 +68,17 @@ def verify_otp():
     return jsonify({"message": "OTP verified successfully"}), 200
 
 
+
 @bp.route('/refresh-token', methods=['POST'])
 def refresh():
     if not request.is_json:
         return jsonify({"error": "Content-Type must be application/json"}), 400
     data = request.get_json()
     return refresh_user_token(data)
+
+
+@bp.route('/send', methods=['POST'])
+def send():
+    data = request.get_json()
+    print(data)
+    return jsonify({"message": "Data received successfully", "received_data": data}), 200
