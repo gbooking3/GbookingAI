@@ -42,6 +42,11 @@ function ChatBot() {
   };
 
   // Handle profile click to navigate to profile page
+  const handleLogoutClick = () => {
+    navigate("/login");
+  };
+
+  // Handle profile click to navigate to profile page
   const handleProfileClick = () => {
     navigate("/profile");
   };
@@ -70,6 +75,7 @@ function ChatBot() {
                 <div onClick={handleDashboardClick} style={{ cursor: "pointer" }}>📊 Dashboard</div>
         {/* Profile button navigates to profile page */}
         <div onClick={handleProfileClick} style={{ cursor: "pointer" }}>👤 Profile</div>
+        <div onClick={handleLogoutClick} style={{ cursor: "pointer" }}>🔓 Logout</div>
 
       </div>
 

@@ -42,7 +42,7 @@ function LoginForm() {
   
     try {
       const response = await apiPost(API_ENDPOINTS.AUTH.LOGIN, loginData);
-  
+      
       const { access_token, refresh_token, user_details } = response;
   
       cookie.set("access_token", access_token);

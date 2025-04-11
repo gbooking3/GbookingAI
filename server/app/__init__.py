@@ -11,7 +11,7 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, supports_credentials=True, origins=["http://127.0.0.1:5173", "http://localhost:5173"])
+    CORS(app, supports_credentials=True, origins=["http://127.0.0.1:5173", "http://localhost:5173","http://192.168.1.166:5173"])
 
     # Configure MongoDB
     app.config["SECRET_KEY"]         = os.getenv('SECRET_KEY')

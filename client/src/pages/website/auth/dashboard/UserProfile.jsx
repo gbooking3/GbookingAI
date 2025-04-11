@@ -14,6 +14,11 @@ function ProfilePage() {
     navigate("/dashboard");
   };
 
+  // Handle profile click to navigate to profile page
+  const handleLogoutClick = () => {
+    navigate("/login");
+  };
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       
@@ -29,9 +34,11 @@ function ProfilePage() {
         fontSize: "16px"
       }}>
         <h3>☰ Menu</h3>
-        <div style={{ cursor: "pointer" }} onClick={() => navigate("/profile")}>👤 Profile</div>
         {/* Dashboard button navigates to dashboard page */}
         <div onClick={handleDashboardClick} style={{ cursor: "pointer" }}>📊 Dashboard</div>
+        <div style={{ cursor: "pointer" }} onClick={() => navigate("/profile")}>👤 Profile</div>
+        <div onClick={handleLogoutClick} style={{ cursor: "pointer" }}>🔓 Logout</div>
+
       </div>
 
       {/* Profile content area */}
