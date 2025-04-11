@@ -1,18 +1,17 @@
 import { useState, useContext } from "react";
-import { User } from '../../context/UserContext'; // Make sure path is correct
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { User } from '../../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
 function ChatBot() {
-  const navigate = useNavigate(); // Initialize the navigate function
-
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([
     { from: "bot", text: "👋 Hi! How can I help you today" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // sidebar toggle
 
-  // 👤 Get user info from context
   const userContext = useContext(User);
   const user = userContext?.auth?.userDetails || {};
 
@@ -41,50 +40,63 @@ function ChatBot() {
     }
   };
 
-  // Handle profile click to navigate to profile page
-  const handleLogoutClick = () => {
-    navigate("/login");
-  };
-
-  // Handle profile click to navigate to profile page
-  const handleProfileClick = () => {
-    navigate("/profile");
-  };
-
-  // Handle dashboard click to navigate to dashboard page
-  const handleDashboardClick = () => {
-    navigate("/dashboard");
-  };
+  const handleLogoutClick = () => navigate("/login");
+  const handleProfileClick = () => navigate("/profile");
+  const handleDashboardClick = () => navigate("/dashboard");
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div style={{ display: "flex", minHeight: "100vh", position: "relative" }}>
       
       {/* Sidebar */}
-      <div style={{
-        width: "200px",
-        backgroundColor: "#0d47a1",
-        color: "#fff",
-        padding: "20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-        fontSize: "16px"
-      }}>
+      <div
+        style={{
+          width: "200px",
+          backgroundColor: "#0d47a1",
+          color: "#fff",
+          padding: "20px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+          fontSize: "16px",
+          position: "absolute",
+          top: 0,
+          left: isSidebarOpen ? "0" : "-220px",
+          height: "100%",
+          transition: "left 0.3s ease-in-out",
+          zIndex: 10,
+        }}
+      >
         <h3>☰ Menu</h3>
-                {/* Dashboard button navigates to dashboard page */}
-                <div onClick={handleDashboardClick} style={{ cursor: "pointer" }}>📊 Dashboard</div>
-        {/* Profile button navigates to profile page */}
+        <div onClick={handleDashboardClick} style={{ cursor: "pointer" }}>📊 Dashboard</div>
         <div onClick={handleProfileClick} style={{ cursor: "pointer" }}>👤 Profile</div>
         <div onClick={handleLogoutClick} style={{ cursor: "pointer" }}>🔓 Logout</div>
-
       </div>
 
+      {/* Toggle Sidebar Button */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        style={{
+          position: "absolute",
+          top: "20px",
+          left: "20px",
+          zIndex: 20,
+          background: "#0d47a1",
+          color: "#fff",
+          border: "none",
+          padding: "10px 14px",
+          borderRadius: "6px",
+          cursor: "pointer"
+        }}
+      >
+        ☰ List
+      </button>
+
       {/* Chat area */}
-      <div className="form-container" style={{ flex: 1, padding: "40px" }}>
+      <div className="form-container" style={{ flex: 1, padding: "40px", marginLeft: "0px" }}>
         <div className="form">
           <h2 className="form-title">Gbooking ChatBot</h2>
 
-          {/* 👤 User profile card */}
+          {/* User Profile Card */}
           <div style={{
             backgroundColor: "#e3f2fd",
             padding: "12px 16px",
