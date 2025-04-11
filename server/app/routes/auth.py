@@ -26,17 +26,23 @@ def login():
     data = request.get_json()
     ownid = data.get("ownid")
     method = data.get("method")
+    contact_value = User.find_by_ownid(ownid)
+    email = contact_value["email"]
 
+    print("The email is : ",email)
+    
+    
     user = User.find_by_ownid(ownid)
     if not user:
         return jsonify({ "error": "Invalid credentials" }), 404
 
  
     if method == "email":
+       
         otp = send_otp_via_yandex(
             sender_email='mohamedabohamad@yandex.com',
             sender_password='qoebhhdmafgowgjn',
-            recipient_email=contact_value
+            recipient_email=email
         )
     elif method == "phone":
         otp = generate_otp()
@@ -53,11 +59,12 @@ def verify_otp():
     data = request.get_json()
     ownid = data.get("ownid")
     otp = data.get("otp")
-
+    stored_otp = generated_otp_store.get(ownid)
+    print(stored_otp[0])
     if not ownid or not otp:
         return jsonify({"error": "Missing ownid or otp"}), 400
 
-    stored_otp = generated_otp_store.get(ownid)
+  
     if not stored_otp or stored_otp != str(otp):
         return jsonify({"error": "OTP is wrong"}), 400
 
