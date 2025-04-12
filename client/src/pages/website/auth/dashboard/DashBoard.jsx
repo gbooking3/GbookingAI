@@ -26,16 +26,14 @@ function ChatBot() {
     setErrorMessage("");
     setLoading(true);
     const response = await apiPost("auth/ask",  userMessage.text );
-    console.log(response); // Check the entire response object
 
 
     try {
       setTimeout(() => {
         const botMessage = {
           from: "bot",
-          text: `🤖 You said: "${response}".`
+          text: response
         };
-        print(response)
 
         setMessages((prev) => [...prev, botMessage]);
         setLoading(false);
