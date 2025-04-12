@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from app.ai.init_ai import ask_gemini
 from app.services.auth_service import (
     register_user, login_user_by_ownid, refresh_user_token,
     send_otp_via_yandex, generate_otp
@@ -82,3 +83,14 @@ def send():
     data = request.get_json()
     print(data)
     return jsonify({"message": "Data received successfully", "received_data": data}), 200
+
+
+@bp.route("/ask", methods=["POST"])
+def ask():
+    data = request.get_json()
+    print(data)
+    if not data:
+        return jsonify({"error": "No message provided"}), 400
+    response = ask_gemini(data)
+    print(response)
+    return (response)
