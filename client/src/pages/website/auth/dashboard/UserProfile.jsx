@@ -19,6 +19,9 @@ function ProfilePage() {
     navigate("/login");
   };
 
+  const handleHistoryClick = () => navigate("/history");
+
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       
@@ -38,6 +41,8 @@ function ProfilePage() {
         <div onClick={handleDashboardClick} style={{ cursor: "pointer" }}>📊 Dashboard</div>
         <div style={{ cursor: "pointer" }} onClick={() => navigate("/profile")}>👤 Profile</div>
         <div onClick={handleLogoutClick} style={{ cursor: "pointer" }}>🔓 Logout</div>
+        <div onClick={handleHistoryClick} style={{ cursor: "pointer" }}>🕓 History</div>
+
 
       </div>
 

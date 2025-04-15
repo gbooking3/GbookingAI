@@ -6,7 +6,8 @@ export const API_ENDPOINTS = {
       SIGNUP      : "auth/signup",
       VERIFY_OTP  : "auth/verify-otp",
       RESEND_OTP  : "auth/resend-otp",
-      REFRESH     : "auth/refresh-token"
+      REFRESH     : "auth/refresh-token",
+      HISTORY     : "auth/history"
     },
     MAIN: {}
   };
@@ -24,7 +25,8 @@ export const ROUTE_PATHS = {
     MAIN: {
       HOME      : "/",
       DASHBOARD : "/dashboard",
-      PROFILE   : "/profile"
+      PROFILE   : "/profile",
+      HISTORY   : "/history"
     }
   };
   

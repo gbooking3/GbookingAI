@@ -5,6 +5,7 @@ import HomePage from "./pages/home/HomePage";
 import OtpPage from "./pages/website/auth/otp/OtpPage";
 import DashBoard from "./pages/website/auth/dashboard/DashBoard";
 import Profile from "./pages/website/auth/dashboard/UserProfile";
+import HistoryChat from "./pages/website/auth/dashboard/HistoryChat";
 
 import PersistLogin from "./pages/website/auth/login/PersistLogin";
 import RequireAuth from "./pages/website/auth/login/RequireAuth";
@@ -34,6 +35,8 @@ export default function App() {
               <Route path={ROUTE_PATHS.MAIN.HOME}      element={<HomePage />} />
               <Route path={ROUTE_PATHS.MAIN.DASHBOARD} element={<DashBoard />} />
               <Route path={ROUTE_PATHS.MAIN.PROFILE}   element={<Profile />} />
+              <Route path={ROUTE_PATHS.MAIN.HISTORY}   element={<HistoryChat />} />
+
 
               
             </Route>

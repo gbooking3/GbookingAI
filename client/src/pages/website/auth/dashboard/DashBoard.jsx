@@ -11,7 +11,8 @@ function ChatBot() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // sidebar toggle
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [conversationId, setConversationId] = useState(null);
 
   const userContext = useContext(User);
   const user = userContext?.auth?.userDetails || {};
@@ -25,21 +26,32 @@ function ChatBot() {
     setInput("");
     setErrorMessage("");
     setLoading(true);
-    const response = await apiPost("auth/ask",  userMessage.text );
 
+    const messageData = {
+      id: user.ownid,
+      name: user.name,
+      message: userMessage.text,
+      conversation_id: conversationId // include existing conversation ID if any
+    };
 
     try {
-      setTimeout(() => {
-        const botMessage = {
-          from: "bot",
-          text: response
-        };
+      const response = await apiPost("auth/ask", messageData);
 
-        setMessages((prev) => [...prev, botMessage]);
-        setLoading(false);
-      }, 700);
+      const botMessage = {
+        from: "bot",
+        text: response.message
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+
+      // Store conversation ID if it's the first message
+      if (response.conversation_id && !conversationId) {
+        setConversationId(response.conversation_id);
+      }
+
     } catch (error) {
       setErrorMessage("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -47,34 +59,53 @@ function ChatBot() {
   const handleLogoutClick = () => navigate("/login");
   const handleProfileClick = () => navigate("/profile");
   const handleDashboardClick = () => navigate("/dashboard");
+  const handleHistoryClick = () => navigate("/history");
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", position: "relative" }}>
-      
-      {/* Sidebar */}
-      <div
-        style={{
-          width: "200px",
-          backgroundColor: "#0d47a1",
-          color: "#fff",
-          padding: "20px",
+    {/* Sidebar */}
+    <div
+      style={{
+        width: "200px",
+        backgroundColor: "#0d47a1",
+        color: "#fff",
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        fontSize: "16px",
+        position: "absolute",
+        top: 0,
+        left: isSidebarOpen ? "0" : "-220px",
+        height: "100%",
+        transition: "left 0.3s ease-in-out",
+        zIndex: 10,
+      }}
+    >
+      <h3 style={{ marginBottom: "20px" }}>☰ Menu</h3>
+
+      {/* Dashboard (Main Item) */}
+      <div style={{ marginBottom: "10px" }}>
+        <div onClick={handleDashboardClick} style={{ cursor: "pointer" }}>
+          📊 Dashboard
+        </div>
+
+        {/* Sub-items indented */}
+        <div style={{
           display: "flex",
           flexDirection: "column",
-          gap: "20px",
-          fontSize: "16px",
-          position: "absolute",
-          top: 0,
-          left: isSidebarOpen ? "0" : "-220px",
-          height: "100%",
-          transition: "left 0.3s ease-in-out",
-          zIndex: 10,
-        }}
-      >
-        <h3>☰ Menu</h3>
-        <div onClick={handleDashboardClick} style={{ cursor: "pointer" }}>📊 Dashboard</div>
-        <div onClick={handleProfileClick} style={{ cursor: "pointer" }}>👤 Profile</div>
-        <div onClick={handleLogoutClick} style={{ cursor: "pointer" }}>🔓 Logout</div>
+          marginTop: "10px",
+          marginLeft: "20px",
+          gap: "10px"
+        }}>
+          <div onClick={handleProfileClick} style={{ cursor: "pointer" }}>👤 Profile</div>
+          <div onClick={handleLogoutClick} style={{ cursor: "pointer" }}>🔓 Logout</div>
+          <div onClick={handleHistoryClick} style={{ cursor: "pointer" }}>🕓 History</div>
+        </div>
       </div>
+    </div>
+
+
+
 
       {/* Toggle Sidebar Button */}
       <button

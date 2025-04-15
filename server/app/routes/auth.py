@@ -5,6 +5,7 @@ from app.services.auth_service import (
     send_otp_via_yandex, generate_otp
 )
 from app.models.user import User
+from app.models.chat import Chat
 
 bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
 generated_otp   =None
@@ -88,9 +89,43 @@ def send():
 @bp.route("/ask", methods=["POST"])
 def ask():
     data = request.get_json()
-    print(data)
     if not data:
-        return jsonify({"error": "No message provided"}), 400
-    response = ask_gemini(data)
-    print(response)
-    return (response)
+        return jsonify({"error": "Missing data"}), 400
+
+    user_id = data.get("id")
+    user_name = data.get("name")
+    user_message = data.get("message")
+    conversation_id = data.get("conversation_id")  # <-- get conversation ID if passed
+
+    print(f"[Request] User: {user_name}, ID: {user_id}, Msg: {user_message}, Conversation ID: {conversation_id}")
+
+    # Ask the bot (Gemini or whatever backend logic)
+    response = ask_gemini(user_message)
+
+    # Save to DB, updating or creating a conversation
+    saved_convo_id = Chat.start_or_update_conversation(
+        ownid=user_id,
+        user_name=user_name,
+        user_msg=user_message,
+        bot_msg=response,
+        conversation_id=conversation_id
+    )
+
+    return jsonify({
+        "message": response,
+        "conversation_id": saved_convo_id , # Send it back to frontend
+    })
+
+
+@bp.route('/history', methods=['POST'])
+def get_chat_history():
+    data = request.get_json()
+    user_id = data.get("id")
+    if not user_id:
+        return jsonify({"error": "Missing user ID"}), 400
+
+    conversations = Chat.get_user_chats(user_id)
+
+
+
+    return jsonify({"history": conversations})
