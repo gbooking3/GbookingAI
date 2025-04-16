@@ -22,6 +22,7 @@ function OTPForm() {
         isVerified: true,
       }));
 
+      alert("OTP Verified!");
       navigate("/dashboard");
     } catch (error) {
       if (error.response && error.response.status === 400) {
