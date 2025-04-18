@@ -4,3 +4,4 @@ tailwindcss
 @tailwindcss/vite
 mdb-react-ui-kit
 @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/react-fontawesome
+google-generativeai

@@ -19,7 +19,7 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isNotRegistered, setIsNotRegistered] = useState(false);
   const userContext = useContext(User);
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigateTo = useNavigate(); // Initialize navigate function
 
   const userId = useInput("", REGEX.ID, REGEX_MESSAGES.ID);
 
@@ -54,7 +54,7 @@ function LoginForm() {
         userDetails: user_details,
       });
   
-      navigate( ROUTE_PATHS.AUTH.OTP);
+      navigateTo( ROUTE_PATHS.AUTH.OTP, {state:{ownid: userId.value, accessible: true}});
 
     } catch (error) {
       if (!error?.response) {
