@@ -14,7 +14,7 @@ function SignupForm() {
   const errRef = useRef();
   const [errMsg, setErrMsg] = useState("");
 
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigateTo = useNavigate(); 
 
 
   const userId    = useInput("", REGEX.ID   , REGEX_MESSAGES.ID   );
@@ -87,7 +87,8 @@ function SignupForm() {
 
       const response = await apiPost(API_ENDPOINTS.AUTH.SIGNUP,  user)
     
-      navigate(ROUTE_PATHS.AUTH.LOGIN);
+      navigateTo(ROUTE_PATHS.AUTH.LOGIN, { state: {ownid:  userId.value,  registered: true } });
+
 
     } catch (err) {
       if (!err?.response) {

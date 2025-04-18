@@ -1,10 +1,12 @@
+/* eslint-disable no-unused-vars */
 import { useState, useContext } from "react";
 import { User } from '../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { apiPost } from '../../../../api/apiMethods';
+import { ROUTE_PATHS, API_ENDPOINTS} from '../../../../utils/consts'
 
 function ChatBot() {
-  const navigate = useNavigate();
+  const navigateTo = useNavigate();
   const [messages, setMessages] = useState([
     { from: "bot", text: "👋 Hi! How can I help you today" }
   ]);
@@ -56,10 +58,10 @@ function ChatBot() {
     }
   };
 
-  const handleLogoutClick = () => navigate("/login");
-  const handleProfileClick = () => navigate("/profile");
-  const handleDashboardClick = () => navigate("/dashboard");
-  const handleHistoryClick = () => navigate("/history");
+  const handleLogoutClick    = () => navigateTo(ROUTE_PATHS.AUTH.LOGIN, {state: {logoed_out: true}});
+  const handleProfileClick   = () => navigateTo(ROUTE_PATHS.MAIN.PROFILE);
+  const handleDashboardClick = () => navigateTo(ROUTE_PATHS.MAIN.DASHBOARD);
+  const handleHistoryClick   = () => navigateTo(ROUTE_PATHS.MAIN.HISTORY);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", position: "relative" }}>
