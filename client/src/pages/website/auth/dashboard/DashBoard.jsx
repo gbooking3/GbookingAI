@@ -4,6 +4,7 @@ import { User } from '../../context/UserContext';
 import { apiPost } from '../../../../api/apiMethods';
 import { ROUTE_PATHS, API_ENDPOINTS} from '../../../../utils/consts'
 import { useLocation, useNavigate } from "react-router-dom";
+import Cookies from "universal-cookie";
 
 function ChatBot() {
   const navigateTo = useNavigate();
@@ -57,13 +58,20 @@ function ChatBot() {
       setLoading(false);
     }
   };
-
-  const handleLogoutClick    = () => navigateTo(
-    ROUTE_PATHS.AUTH.LOGIN, {
-      state: {logoed_out: true},  
-      replace: true // ✅ prevent returning to dashboard after logout
-    }
-  );
+  const handleLogoutClick = () => {
+    const cookies = new Cookies();
+    cookies.remove("access_token", { path: "/" });
+    cookies.remove("refresh_token", { path: "/" });
+  
+    // Also optionally clear context
+    userContext.setAuth(null);
+  
+    navigateTo(ROUTE_PATHS.AUTH.LOGIN, {
+      state: { logoed_out: true },
+      replace: true,
+    });
+  };
+  
   const handleProfileClick   = () => navigateTo(ROUTE_PATHS.MAIN.PROFILE);
   const handleDashboardClick = () => navigateTo(ROUTE_PATHS.MAIN.DASHBOARD);
   const handleHistoryClick   = () => navigateTo(ROUTE_PATHS.MAIN.HISTORY);
