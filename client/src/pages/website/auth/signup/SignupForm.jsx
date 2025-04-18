@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef } from "react";
+import { useState, useRef, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import './SignupPage.css';
 import { apiPost } from '../../../../api/apiMethods';
@@ -8,9 +8,21 @@ import Auth_Button from '../../../../components/button/Auth_Button'
 import useInput from '../../../../hooks/useFormInput'
 import {REGEX, REGEX_MESSAGES, ROUTE_PATHS, API_ENDPOINTS} from '../../../../utils/consts'
 
+import { User } from '../../context/UserContext';
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 function SignupForm() {
+  const { auth } = useContext(User);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (auth?.access_token) {
+      navigate(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
+    }
+  }, []);
+
+
   const errRef = useRef();
   const [errMsg, setErrMsg] = useState("");
 
@@ -87,7 +99,10 @@ function SignupForm() {
 
       const response = await apiPost(API_ENDPOINTS.AUTH.SIGNUP,  user)
     
-      navigateTo(ROUTE_PATHS.AUTH.LOGIN, { state: {ownid:  userId.value,  registered: true } });
+      navigateTo(ROUTE_PATHS.AUTH.LOGIN, { 
+        state: {ownid:  userId.value,  registered: true },
+        replace: true
+       });
 
 
     } catch (err) {

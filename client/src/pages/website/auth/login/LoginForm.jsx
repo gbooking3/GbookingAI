@@ -1,4 +1,4 @@
-import { useState, useContext, useRef } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Cookies from "universal-cookie";
 import { User } from '../../context/UserContext';
@@ -32,6 +32,15 @@ function LoginForm() {
   const isLogedOut   = location.state?.logoed_out || false;
   const userId = useInput(location.state?.ownid || "", REGEX.ID, REGEX_MESSAGES.ID);
   const cookie = new Cookies();
+  const { auth } = useContext(User);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (auth?.access_token) {
+      navigate(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
+    }
+  }, []);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,6 +68,7 @@ function LoginForm() {
 
       navigateTo(ROUTE_PATHS.AUTH.OTP, {
         state: { ownid: userId.value, accessible: true },
+        replace: true,// ✅ prevent back to /login
       });
 
     } catch (error) {

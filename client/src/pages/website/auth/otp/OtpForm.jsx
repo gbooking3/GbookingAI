@@ -9,6 +9,15 @@ import { ROUTE_PATHS, API_ENDPOINTS} from '../../../../utils/consts'
 
 
 function OTPForm() {
+  const { auth } = useContext(User);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (auth?.access_token) {
+      navigate(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
+    }
+  }, []);
+  
   const location  = useLocation()
   const navigateTo = useNavigate();
 
@@ -23,13 +32,13 @@ function OTPForm() {
 
   useEffect(() => {
     if (!location.state || !location.state.accessible) {
-      navigateTo(ROUTE_PATHS.AUTH.LOGIN);
+      navigateTo(ROUTE_PATHS.AUTH.LOGIN, { replace: true });
     } else {
       setIsAccessible(true);
     }
   }, [location, navigateTo]);
 
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -42,8 +51,8 @@ function OTPForm() {
         isVerified: true,
       }));
 
-      alert("OTP Verified!");
-      navigateTo( ROUTE_PATHS.MAIN.DASHBOARD );
+      navigateTo(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
+
     } catch (error) {
       if (error.response && error.response.status === 400) {
         setErrorMessage(error.response.data?.error);

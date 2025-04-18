@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { User } from '../../context/UserContext';
-import { useNavigate } from 'react-router-dom';
 import { apiPost } from '../../../../api/apiMethods';
 import { ROUTE_PATHS, API_ENDPOINTS} from '../../../../utils/consts'
+import { useLocation, useNavigate } from "react-router-dom";
 
 function ChatBot() {
   const navigateTo = useNavigate();
@@ -18,7 +18,7 @@ function ChatBot() {
 
   const userContext = useContext(User);
   const user = userContext?.auth?.userDetails || {};
-
+ 
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -58,7 +58,12 @@ function ChatBot() {
     }
   };
 
-  const handleLogoutClick    = () => navigateTo(ROUTE_PATHS.AUTH.LOGIN, {state: {logoed_out: true}});
+  const handleLogoutClick    = () => navigateTo(
+    ROUTE_PATHS.AUTH.LOGIN, {
+      state: {logoed_out: true},  
+      replace: true // ✅ prevent returning to dashboard after logout
+    }
+  );
   const handleProfileClick   = () => navigateTo(ROUTE_PATHS.MAIN.PROFILE);
   const handleDashboardClick = () => navigateTo(ROUTE_PATHS.MAIN.DASHBOARD);
   const handleHistoryClick   = () => navigateTo(ROUTE_PATHS.MAIN.HISTORY);
