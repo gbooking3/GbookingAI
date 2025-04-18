@@ -14,8 +14,6 @@ import {
   ROUTE_PATHS,
   API_ENDPOINTS
 } from '../../../../utils/consts';
-
-// ✅ Font Awesome Success Icon
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 
@@ -25,22 +23,24 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isNotRegistered, setIsNotRegistered] = useState(false);
-  const userContext  = useContext(User);
-  const navigateTo   = useNavigate();
-  const location     = useLocation();
+
+  const userContext = useContext(User);
+  const navigateTo = useNavigate();
+  const location = useLocation();
+
   const isRegistered = location.state?.registered || false;
-  const isLogedOut   = location.state?.logoed_out || false;
+  const isLoggedOut = location.state?.logged_out || false;
   const userId = useInput(location.state?.ownid || "", REGEX.ID, REGEX_MESSAGES.ID);
-  const cookie = new Cookies();
-  const { auth } = useContext(User);
-  const navigate = useNavigate();
 
+  const cookies = new Cookies();
+
+  // ✅ Redirect to dashboard if already logged in
   useEffect(() => {
-    if (auth?.access_token) {
-      navigate(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
+    const accessToken = cookies.get("access_token");
+    if (accessToken) {
+      navigateTo(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
     }
-  }, []);
-
+  }, [navigateTo]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,8 +57,8 @@ function LoginForm() {
       const response = await apiPost(API_ENDPOINTS.AUTH.LOGIN, loginData);
       const { access_token, refresh_token, user_details } = response;
 
-      cookie.set("access_token", access_token);
-      cookie.set("refresh_token", refresh_token);
+      cookies.set("access_token", access_token, { path: "/" });
+      cookies.set("refresh_token", refresh_token, { path: "/" });
 
       userContext.setAuth({
         access_token,
@@ -68,9 +68,8 @@ function LoginForm() {
 
       navigateTo(ROUTE_PATHS.AUTH.OTP, {
         state: { ownid: userId.value, accessible: true },
-        replace: true,// ✅ prevent back to /login
+        replace: true,
       });
-
     } catch (error) {
       if (!error?.response) {
         setErrorMessage("No Server Response");
@@ -93,19 +92,17 @@ function LoginForm() {
       ) : (
         <>
           <form onSubmit={handleSubmit} className="form">
-          {isRegistered && (
-         
-                <p className={ isRegistered ? "successmsg" : "offscreen"}>
-                  Registered successfully! Please log in below
-                  <FontAwesomeIcon
-                    icon={faCircleCheck}
-                    style={{ fontSize: "20px", color: "green", marginLeft: "10px"}}
-                  />
-                </p>
-             
+            {isRegistered && (
+              <p className="successmsg">
+                Registered successfully! Please log in below
+                <FontAwesomeIcon
+                  icon={faCircleCheck}
+                  style={{ fontSize: "20px", color: "green", marginLeft: "10px" }}
+                />
+              </p>
             )}
 
-          {isLogedOut && (
+            {isLoggedOut && (
               <p className="successmsg">
                 Logged out successfully.
                 <FontAwesomeIcon
@@ -123,6 +120,7 @@ function LoginForm() {
             >
               {errorMessage}
             </p>
+
             <div className="form-inputs">
               <InputField
                 type="text"
@@ -135,7 +133,6 @@ function LoginForm() {
                 placeholder=""
                 instruction={userId.instruction}
               />
-
               <ContactMethodSelector method={contactMethod} setMethod={setContactMethod} />
             </div>
 

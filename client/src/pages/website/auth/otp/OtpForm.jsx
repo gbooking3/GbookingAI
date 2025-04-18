@@ -1,43 +1,28 @@
-/* eslint-disable no-unused-vars */
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { User } from "../../context/UserContext";
+import Cookies from "universal-cookie";
 import { apiPost } from "../../../../api/apiMethods";
-
 import Loading from "../../../../components/loading/Loading";
-import { ROUTE_PATHS, API_ENDPOINTS} from '../../../../utils/consts'
-
+import { ROUTE_PATHS, API_ENDPOINTS } from '../../../../utils/consts';
 
 function OTPForm() {
-  const { auth } = useContext(User);
+  const location = useLocation();
   const navigate = useNavigate();
+  const userContext = useContext(User);
 
-  useEffect(() => {
-    if (auth?.access_token) {
-      navigate(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
-    }
-  }, []);
-  
-  const location  = useLocation()
-  const navigateTo = useNavigate();
+  const isAccessible = location.state?.accessible;
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const userContext = useContext(User);
 
-  const [isAccessible, setIsAccessible] = useState(
-    location.state && location.state.accessible 
-  );
-
+  // Redirect to login if accessed directly
   useEffect(() => {
-    if (!location.state || !location.state.accessible) {
-      navigateTo(ROUTE_PATHS.AUTH.LOGIN, { replace: true });
-    } else {
-      setIsAccessible(true);
+    if (!isAccessible) {
+      navigate(ROUTE_PATHS.AUTH.LOGIN, { replace: true });
     }
-  }, [location, navigateTo]);
-
+  }, [isAccessible, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,16 +30,17 @@ function OTPForm() {
     setErrorMessage("");
 
     try {
-      const response = await apiPost( API_ENDPOINTS.AUTH.VERIFY_OTP, { otp });
+      const response = await apiPost(API_ENDPOINTS.AUTH.VERIFY_OTP, { otp });
+
       userContext.setAuth((prev) => ({
         ...prev,
         isVerified: true,
       }));
 
-      navigateTo(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
+      navigate(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
 
     } catch (error) {
-      if (error.response && error.response.status === 400) {
+      if (error.response?.status === 400) {
         setErrorMessage(error.response.data?.error);
       } else {
         console.error("OTP verification error:", error);
@@ -67,7 +53,7 @@ function OTPForm() {
 
   return (
     <>
-      {isAccessible !== null ? (
+      {isAccessible ? (
         <div className="form-container">
           <form onSubmit={handleSubmit} className="form">
             <h2 className="form-title">Verify OTP</h2>
@@ -87,7 +73,7 @@ function OTPForm() {
               {loading ? "Verifying..." : "Verify OTP"}
             </button>
             <p className="signup-link">
-              Didn’t receive the code? <a href= { API_ENDPOINTS.AUTH.RESEND_OTP }>Resend OTP</a>
+              Didn’t receive the code? <a href={API_ENDPOINTS.AUTH.RESEND_OTP}>Resend OTP</a>
             </p>
           </form>
         </div>

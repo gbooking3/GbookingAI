@@ -7,6 +7,7 @@ import InputField from '../../../../components/input_field/InputField'
 import Auth_Button from '../../../../components/button/Auth_Button'
 import useInput from '../../../../hooks/useFormInput'
 import {REGEX, REGEX_MESSAGES, ROUTE_PATHS, API_ENDPOINTS} from '../../../../utils/consts'
+import Cookies from "universal-cookie";
 
 import { User } from '../../context/UserContext';
 
@@ -17,10 +18,14 @@ function SignupForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (auth?.access_token) {
+    const cookies = new Cookies();
+    const accessToken = cookies.get("access_token");
+  
+    if (accessToken) {
       navigate(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
     }
   }, []);
+  
 
 
   const errRef = useRef();

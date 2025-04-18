@@ -20,6 +20,25 @@ function ChatBot() {
   const userContext = useContext(User);
   const user = userContext?.auth?.userDetails || {};
  
+
+  const location = useLocation();
+
+  // ✅ Redirect to login if no access token AND user is on /dashboard
+  useEffect(() => {
+    const cookies = new Cookies();
+    const accessToken = cookies.get("access_token");
+  
+    const isOnDashboard = location.pathname === ROUTE_PATHS.MAIN.DASHBOARD;
+  
+    if (!accessToken && isOnDashboard) {
+      userContext.setAuth(null); // Clear any existing user context
+      navigateTo(ROUTE_PATHS.AUTH.LOGIN, {
+        state: { logged_out: false },
+        replace: true,
+      });
+    }
+  }, [location.pathname]);
+  
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -67,7 +86,7 @@ function ChatBot() {
     userContext.setAuth(null);
   
     navigateTo(ROUTE_PATHS.AUTH.LOGIN, {
-      state: { logoed_out: true },
+      state: { logged_out: true },
       replace: true,
     });
   };
