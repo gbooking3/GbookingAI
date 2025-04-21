@@ -1,24 +1,41 @@
 import requests
+import json
 
-# Base URL from the Postman docs
-base_url = "https://api.wirelesscar.net/"
+# Define the API URL
+url = "https://crac-prod3.gbooking.ru/rpc"
 
-# Replace this with the endpoint you want to test, e.g. vehicles for a network
-endpoint = f"core/vehicles?networkId=456"
-
-# Full URL
-url = base_url + endpoint
-
-# Headers with token authentication
+# Define the headers
 headers = {
-    "Content-Type": "application/json",
-    "X-Auth-Token": "02ccadf0487e1e7ae27fea5048c3f53e7330fa45",
-    "X-User-Id": "67e16c86c43bdd3739a7b415"
+    "Content-Type": "application/json"
 }
 
-# Make the request
-response = requests.get(url, headers=headers)
+# Define the request body
+body = {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "cred": {},
+    "method": "Crac.GetCRACResourcesAndRooms",
+    "params": [{
+        "business": {
+            "id": "4000000006304"
+        },
+        "filters": {
+            "resources": ["59f05563854202eb6f86569c"],
+            "date": {
+                "from": "2017-11-01T00:00:00.000Z",
+                "to": "2017-11-30T00:00:00.000Z"
+            }
+        }
+    }]
+}
 
-# Print the response
-print("Status Code:", response.status_code)
-print("Response JSON:", response.json())
+# Send the POST request
+response = requests.post(url, headers=headers, data=json.dumps(body))
+
+# Check if the request was successful
+if response.status_code == 200:
+    # Parse the response JSON
+    timetable = response.json()
+    print("Timetable slots received:", json.dumps(timetable, indent=4))
+else:
+    print(f"Error: {response.status_code} - {response.text}")

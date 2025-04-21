@@ -6,6 +6,8 @@ from app.services.auth_service import (
 )
 from app.models.user import User
 from app.models.chat import Chat
+import difflib
+import requests
 
 bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
 generated_otp   =None
@@ -85,7 +87,21 @@ def send():
     print(data)
     return jsonify({"message": "Data received successfully", "received_data": data}), 200
 
+def contains_fuzzy_keyword(message, target="services", threshold=0.8):
+    words = message.lower().split()
+    matches = difflib.get_close_matches(target, words, n=1, cutoff=threshold)
+    return bool(matches)
 
+
+@bp.route('/history', methods=['POST'])
+def get_chat_history():
+    data = request.get_json()
+    user_id = data.get("id")
+    if not user_id:
+        return jsonify({"error": "Missing user ID"}), 400
+
+    conversations = Chat.get_user_chats(user_id)
+    return jsonify({"history": conversations})
 
 @bp.route("/ask", methods=["POST"])
 def ask():
@@ -100,19 +116,22 @@ def ask():
 
     print(f"[Request] User: {user_name}, ID: {user_id}, Msg: {user_message}, Conversation ID: {conversation_id}")
 
-    # Handle custom intent: inject services
-    if "services" in user_message.lower():
-        try:
+    try:
+        if contains_fuzzy_keyword(user_message, target="services"):
             services_list = get_services()
             services_str = ", ".join(services_list)
             user_message = f"We offer the following services: {services_str}. {user_message}"
-        except Exception as e:
-            print("Error getting services:", e)
 
-    # Get response from Gemini
+        elif contains_fuzzy_keyword(user_message, target="doctor"):
+            doctors = get_doctors()
+            doctor_str = ", ".join([f"Dr. {doc['name']} ({doc['profession']})" for doc in doctors])
+            user_message = f"These are our available doctors: {doctor_str}. {user_message}"
+
+    except Exception as e:
+        print("Error enriching user message:", e)
+
     response = ask_gemini(user_message)
 
-    # Store in DB (stub)
     saved_convo_id = Chat.start_or_update_conversation(
         ownid=user_id,
         user_name=user_name,
@@ -127,18 +146,7 @@ def ask():
     })
 
 
-@bp.route('/history', methods=['POST'])
-def get_chat_history():
-    data = request.get_json()
-    user_id = data.get("id")
-    if not user_id:
-        return jsonify({"error": "Missing user ID"}), 400
-
-    conversations = Chat.get_user_chats(user_id)
-    return jsonify({"history": conversations})
-
-
-import requests
+# server/app/utils/gbooking_helpers.py
 
 def get_services():
     payload = {
@@ -158,3 +166,42 @@ def get_services():
     response = requests.post("https://apiv2.gbooking.ru/rpc", headers=headers, json=payload)
     services = response.json().get("result", {}).get("business", {}).get("taxonomies", [])
     return [s.get("alias", {}).get("ru-ru", "Unnamed") for s in services]
+
+def get_doctors():
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "cred": {
+            "token": "8e7d61be4f200e39ea29b1231006a248de108d9a",
+            "user": "5b1035dcaff15607133b523f"
+        },
+        "method": "business.get_profile_by_id",
+        "params": {
+            "business": {"id": "4000000006304"},
+            "with_networks": True
+        }
+    }
+    headers = {"Content-Type": "application/json"}
+    response = requests.post("https://apiv2.gbooking.ru/rpc", headers=headers, json=payload)
+    data = response.json()
+
+    resources = data.get("result", {}).get("business", {}).get("resources", [])
+    doctors = []
+
+    for person in resources:
+        profession = (person.get("profession") or "").lower()
+        description = (person.get("description") or "").lower()
+        name = f"{person.get('name', '')} {person.get('surname', '')}".strip()
+        print(description+"\n")
+        # if any(keyword in profession or keyword in description for keyword in ["doctor", "dr", "physician"]):
+        #     doctors.append({
+        #         "id": person.get("id"),
+        #         "name": name,
+        #         "profession": person.get("profession"),
+        #         "description": person.get("description"),
+        #         "email": person.get("email"),
+        #         "status": person.get("status"),
+        #         "icon_url": person.get("icon_url")
+        #     })
+
+    return doctors

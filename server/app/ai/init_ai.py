@@ -12,9 +12,10 @@ if not API_KEY:
 genai.configure(api_key=API_KEY)
 
 model = genai.GenerativeModel("gemini-2.0-flash")
-
 def ask_gemini(prompt: str) -> str:
     rules = """
+    ⚠️ Always respond in English only, regardless of the user's language.
+
     You are a friendly virtual assistant helping patients book clinic appointments.
 
     ✅ You are allowed to:
@@ -33,5 +34,3 @@ def ask_gemini(prompt: str) -> str:
     full_prompt = f"{rules.strip()}\n\nUser: {prompt.strip()}\nBot:"
     response = model.generate_content(full_prompt)
     return response.text
-
-
