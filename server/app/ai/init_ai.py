@@ -12,6 +12,8 @@ if not API_KEY:
 genai.configure(api_key=API_KEY)
 
 model = genai.GenerativeModel("gemini-2.0-flash")
+
+
 def ask_gemini(prompt: str) -> str:
     rules = """
     ⚠️ Always respond in English only, regardless of the user's language.

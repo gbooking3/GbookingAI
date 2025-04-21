@@ -1,5 +1,6 @@
 from flask import Flask
 from .routes import auth
+from .routes import chat
 from app.extensions import mongo
 from flask_cors import CORS
 from flask_pymongo import PyMongo
@@ -20,5 +21,6 @@ def create_app():
     mongo.init_app(app)
 
     app.register_blueprint(auth.bp)
+    app.register_blueprint(chat.bp)
 
     return app

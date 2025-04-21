@@ -2,10 +2,11 @@ import { useEffect, useState, useContext } from "react";
 import { apiPost } from "../../../../api/apiMethods";
 import { User } from "../../context/UserContext";
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { API_ENDPOINTS, ROUTE_PATHS } from "../../../../utils/consts";
 
 
 function HistoryChat() {
-  const navigate = useNavigate(); // Initialize the navigate function
+  const navigateTo = useNavigate(); // Initialize the navigate function
 
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,7 @@ function HistoryChat() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await apiPost("auth/history", { id: user.ownid });
+        const res = await apiPost(API_ENDPOINTS.MAIN.CHAT_HISTORY, { id: user.ownid });
         setConversations(res.history || []);
         setLoading(false);
       } catch (err) {
@@ -27,10 +28,10 @@ function HistoryChat() {
     fetchHistory();
   }, [user.ownid]);
 
-  const handleLogoutClick = () => navigate("/login");
-  const handleProfileClick = () => navigate("/profile");
-  const handleDashboardClick = () => navigate("/dashboard");
-  const handleHistoryClick = () => navigate("/history");
+    const handleLogoutClick    = () => navigateTo(ROUTE_PATHS.AUTH.LOGIN);
+    const handleProfileClick   = () => navigateTo(ROUTE_PATHS.MAIN.PROFILE);
+    const handleDashboardClick = () => navigateTo(ROUTE_PATHS.MAIN.DASHBOARD);
+    const handleHistoryClick   = () => navigateTo(ROUTE_PATHS.MAIN.HISTORY);
 
   return (
 

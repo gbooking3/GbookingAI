@@ -9,7 +9,10 @@ export const API_ENDPOINTS = {
       REFRESH     : "auth/refresh-token",
       HISTORY     : "auth/history"
     },
-    MAIN: {}
+    MAIN: {
+      CHAT_MESSAGE     : "chat/message",
+      CHAT_HISTORY     : "chat/history"
+    }
   };
   
 

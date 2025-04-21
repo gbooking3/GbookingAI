@@ -57,7 +57,7 @@ function ChatBot() {
     };
 
     try {
-      const response = await apiPost("auth/ask", messageData);
+      const response = await apiPost(API_ENDPOINTS.MAIN.CHAT_MESSAGE, messageData);
 
       const botMessage = {
         from: "bot",
