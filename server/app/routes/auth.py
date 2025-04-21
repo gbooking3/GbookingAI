@@ -86,6 +86,7 @@ def send():
     return jsonify({"message": "Data received successfully", "received_data": data}), 200
 
 
+
 @bp.route("/ask", methods=["POST"])
 def ask():
     data = request.get_json()
@@ -95,14 +96,23 @@ def ask():
     user_id = data.get("id")
     user_name = data.get("name")
     user_message = data.get("message")
-    conversation_id = data.get("conversation_id")  # <-- get conversation ID if passed
+    conversation_id = data.get("conversation_id")
 
     print(f"[Request] User: {user_name}, ID: {user_id}, Msg: {user_message}, Conversation ID: {conversation_id}")
 
-    # Ask the bot (Gemini or whatever backend logic)
+    # Handle custom intent: inject services
+    if "services" in user_message.lower():
+        try:
+            services_list = get_services()
+            services_str = ", ".join(services_list)
+            user_message = f"We offer the following services: {services_str}. {user_message}"
+        except Exception as e:
+            print("Error getting services:", e)
+
+    # Get response from Gemini
     response = ask_gemini(user_message)
 
-    # Save to DB, updating or creating a conversation
+    # Store in DB (stub)
     saved_convo_id = Chat.start_or_update_conversation(
         ownid=user_id,
         user_name=user_name,
@@ -113,7 +123,7 @@ def ask():
 
     return jsonify({
         "message": response,
-        "conversation_id": saved_convo_id , # Send it back to frontend
+        "conversation_id": saved_convo_id,
     })
 
 
@@ -125,7 +135,26 @@ def get_chat_history():
         return jsonify({"error": "Missing user ID"}), 400
 
     conversations = Chat.get_user_chats(user_id)
-
-
-
     return jsonify({"history": conversations})
+
+
+import requests
+
+def get_services():
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "cred": {
+            "token": "8e7d61be4f200e39ea29b1231006a248de108d9a",
+            "user": "5b1035dcaff15607133b523f"
+        },
+        "method": "business.get_profile_by_id",
+        "params": {
+            "business": {"id": "4000000006304"},
+            "with_networks": True
+        }
+    }
+    headers = {"Content-Type": "application/json"}
+    response = requests.post("https://apiv2.gbooking.ru/rpc", headers=headers, json=payload)
+    services = response.json().get("result", {}).get("business", {}).get("taxonomies", [])
+    return [s.get("alias", {}).get("ru-ru", "Unnamed") for s in services]
