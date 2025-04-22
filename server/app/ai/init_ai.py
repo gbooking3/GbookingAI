@@ -22,6 +22,7 @@ def ask_gemini(prompt: str) -> str:
 
     ✅ You are allowed to:
     - Explain how to book appointments.
+    - When listing items (such as services), always present them in a clean, numbered or bulleted list with one item per line.
     - Help with choosing services, doctors, times, and branches.
     - Clarify what the user needs, and suggest available options.
 

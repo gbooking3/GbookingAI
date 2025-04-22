@@ -17,23 +17,26 @@ def enrich_user_message(user_message):
             services_str = ", ".join(services_list)
             return f"We offer the following services: {services_str}. {user_message}"
 
-        elif contains_fuzzy_keyword(user_message, target="date"):
+        elif contains_fuzzy_keyword(user_message, target="doctors"):
             doctors = get_doctors()
             print(f'{ doctors= }')
             doctor_str = ", ".join([f"Dr. {doc['name']} ({doc['profession']})" for doc in doctors])
             return f"These are our available doctors: {doctor_str}. {user_message}"
         
 
-        elif contains_fuzzy_keyword(user_message, target="dates"):
+        elif contains_fuzzy_keyword(user_message, target="dates") or contains_fuzzy_keyword(user_message, target="hours"):
             dates = get_available_slots(
-    business_id="4000000008542",
-    resource_id="66e6b856b57b88c54a2ab1b9",
-    taxonomy_ids=["9175163"],
-    from_date="2025-05-13T00:00:00.000Z",
-    to_date="2025-05-16T00:00:00.000Z"
-)
+            business_id="4000000008542",
+            resources_items=[
+                {"id": "66e6b856b57b88c54a2ab1b9", "duration": 30},
+                {"id": "66e6b669bbe2b5c4faf5bdd7", "duration": 30}
+            ],
+            taxonomy_ids=["9175163"],
+            from_date="2025-05-13T00:00:00.000Z",
+            to_date="2025-05-16T00:00:00.000Z"
+            )
             print(f'{ dates= }')
-            return f"These are our available doctors: {dates}. {user_message}"
+            return f"These are our available dates: {dates}. {user_message}"
         
 
     except Exception as e:

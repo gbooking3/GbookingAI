@@ -41,6 +41,23 @@ def get_services():
    
     return [s.get("alias", {}).get("ru-ru", "Unnamed") for s in services]
 
+def replace_doctor_ids_with_names(structured_data, doctors):
+    # Create a map from id to name
+    id_to_name = {doc['id']: doc['name'] for doc in doctors}
+
+    # Replace each doctor_id in structured_data with the name
+    updated_data = []
+    for date_entry in structured_data:
+        date = date_entry[0]
+        updated_entry = [date]
+        for doctor_info in date_entry[1:]:
+            doctor_id = doctor_info[0]
+            time_slots = doctor_info[1]
+            doctor_name = id_to_name.get(doctor_id, doctor_id)  # fallback to ID if name not found
+            updated_entry.append([doctor_name, time_slots])
+        updated_data.append(updated_entry)
+
+    return updated_data
 
 
 def get_doctors():
@@ -69,7 +86,7 @@ def minutes_to_time(minutes):
     time = timedelta(minutes=minutes)
     return str(time)
 
-def get_available_slots(business_id, resource_id, taxonomy_ids, from_date, to_date):
+def get_available_slots(business_id, resources_items, taxonomy_ids, from_date, to_date):
     url = "https://cracslots.gbooking.ru/rpc"
     headers = {
         "Content-Type": "application/json"
@@ -92,9 +109,7 @@ def get_available_slots(business_id, resource_id, taxonomy_ids, from_date, to_da
                 }
             },
             "filters": {
-                "resources": [
-                    {"id": resource_id, "duration": 30}
-                ],
+                "resources": resources_items,
                 "taxonomies": taxonomy_ids,
                 "rooms": [],
                 "date": {
@@ -106,40 +121,42 @@ def get_available_slots(business_id, resource_id, taxonomy_ids, from_date, to_da
     }
 
     response = requests.post(url, headers=headers, data=json.dumps(payload))
+    response_data = response.json()
+    structured_data = []
+    result = response_data.get("result", {})
+    slots = result.get("slots", [])
 
-    if response.status_code == 200:
-        response_data = response.json()
-        result = response_data.get("result", {})
-        slots = result.get("slots", [])
+    for day_slot in slots:
+        date = day_slot['date']
+        doctor_slots_map = {}
 
-        for day_slot in slots:
-            date = day_slot['date']
-            resources = day_slot.get("resources", [])
+        for resource in day_slot.get("resources", []):
+            resource_id = resource.get("resourceId")
+            for slot in resource.get("cutSlots", []):
+                if slot.get("available"):
+                    start = minutes_to_time(slot['start'])
+                    end = minutes_to_time(slot['end'])
+                    doctor_slots_map.setdefault(resource_id, []).append([start, end])
 
-            if resources:
-                resource_info = resources[0]
-                resource_id = resource_info.get("resourceId")
-                cut_slots = resource_info.get("cutSlots", [])
+        if doctor_slots_map:
+            day_entry = [date]
+            for doctor_id, time_ranges in doctor_slots_map.items():
+                day_entry.append([doctor_id, time_ranges])
+            structured_data.append(day_entry)
 
-                print(f"\nDate: {date}")
-                print(f"Resource ID: {resource_id}")
+    doctors = get_doctors()
+    readable_data = replace_doctor_ids_with_names(structured_data, doctors)
+    print(json.dumps(readable_data, indent=2, ensure_ascii=False))  # Nice readable output
+    return readable_data
 
-                if not cut_slots:
-                    print("No available slots.")
-                else:
-                    for slot in cut_slots:
-                        if slot.get("available"):
-                            start_time = minutes_to_time(slot['start'])
-                            end_time = minutes_to_time(slot['end'])
-                            print(f"Available from {start_time} to {end_time}")
-    else:
-        print(f"Request failed with status code {response.status_code}")
-        print(response.text)
 
-# Example usage:
+# Example usage
 get_available_slots(
-    business_id="4000000008542",
-    resource_id="66e6b856b57b88c54a2ab1b9",
+    business_id=BUSINESS_ID,
+    resources_items=[
+        {"id": "66e6b856b57b88c54a2ab1b9", "duration": 30},
+        {"id": "66e6b669bbe2b5c4faf5bdd7", "duration": 30}
+    ],
     taxonomy_ids=["9175163"],
     from_date="2025-05-13T00:00:00.000Z",
     to_date="2025-05-16T00:00:00.000Z"
