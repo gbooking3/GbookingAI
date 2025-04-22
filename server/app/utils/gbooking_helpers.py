@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime, timedelta
 
 GBOOKING_API_URL = "https://apiv2.gbooking.ru/rpc"
 
@@ -7,7 +8,7 @@ GBOOKING_CRED = {
     "user": "5b1035dcaff15607133b523f"
 }
 
-BUSINESS_ID = "4000000006304"
+BUSINESS_ID = "4000000008542"
 HEADERS = {"Content-Type": "application/json"}
 
 def call_gbooking_api(method, params=None):
@@ -56,7 +57,9 @@ def get_doctors():
         if worker.get("status") == "ACTIVE" and worker.get("displayInWidget", False):
             doctors.append({
                 "name": worker.get("name", "Unnamed"),
-                "profession": worker.get("profession", "Doctor")
+                "profession": worker.get("profession", "Doctor"),
+                "id": worker.get("id", "Doctor")
             })
-
+    print(doctors)
     return doctors
+
