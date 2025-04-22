@@ -1,6 +1,6 @@
 import requests
 from datetime import datetime, timedelta
-
+import json
 GBOOKING_API_URL = "https://apiv2.gbooking.ru/rpc"
 
 GBOOKING_CRED = {
@@ -63,3 +63,84 @@ def get_doctors():
     print(doctors)
     return doctors
 
+
+def minutes_to_time(minutes):
+    """Convert minutes to HH:MM format."""
+    time = timedelta(minutes=minutes)
+    return str(time)
+
+def get_available_slots(business_id, resource_id, taxonomy_ids, from_date, to_date):
+    url = "https://cracslots.gbooking.ru/rpc"
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "cred": {},  # Add credentials here if required
+        "method": "CracSlots.GetCRACResourcesAndRooms",
+        "params": {
+            "business": {
+                "id": business_id,
+                "widget_configuration": {
+                    "cracServer": "CRAC_PROD3",
+                    "mostFreeEnable": True
+                },
+                "general_info": {
+                    "timezone": "Europe/Moscow"
+                }
+            },
+            "filters": {
+                "resources": [
+                    {"id": resource_id, "duration": 30}
+                ],
+                "taxonomies": taxonomy_ids,
+                "rooms": [],
+                "date": {
+                    "from": from_date,
+                    "to": to_date
+                }
+            }
+        }
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    if response.status_code == 200:
+        response_data = response.json()
+        result = response_data.get("result", {})
+        slots = result.get("slots", [])
+
+        for day_slot in slots:
+            date = day_slot['date']
+            resources = day_slot.get("resources", [])
+
+            if resources:
+                resource_info = resources[0]
+                resource_id = resource_info.get("resourceId")
+                cut_slots = resource_info.get("cutSlots", [])
+
+                print(f"\nDate: {date}")
+                print(f"Resource ID: {resource_id}")
+
+                if not cut_slots:
+                    print("No available slots.")
+                else:
+                    for slot in cut_slots:
+                        if slot.get("available"):
+                            start_time = minutes_to_time(slot['start'])
+                            end_time = minutes_to_time(slot['end'])
+                            print(f"Available from {start_time} to {end_time}")
+    else:
+        print(f"Request failed with status code {response.status_code}")
+        print(response.text)
+
+# Example usage:
+get_available_slots(
+    business_id="4000000008542",
+    resource_id="66e6b856b57b88c54a2ab1b9",
+    taxonomy_ids=["9175163"],
+    from_date="2025-05-13T00:00:00.000Z",
+    to_date="2025-05-16T00:00:00.000Z"
+)

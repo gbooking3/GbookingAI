@@ -1,7 +1,7 @@
 # server/app/services/chat_service.py
 import difflib
 from app.ai.init_ai import ask_gemini
-from app.utils.gbooking_helpers import get_services, get_doctors
+from app.utils.gbooking_helpers import get_services, get_doctors,get_available_slots
 from app.models.chat import Chat
 
 def contains_fuzzy_keyword(message, target="services", threshold=0.8):
@@ -17,11 +17,24 @@ def enrich_user_message(user_message):
             services_str = ", ".join(services_list)
             return f"We offer the following services: {services_str}. {user_message}"
 
-        elif contains_fuzzy_keyword(user_message, target="doctor"):
+        elif contains_fuzzy_keyword(user_message, target="date"):
             doctors = get_doctors()
             print(f'{ doctors= }')
             doctor_str = ", ".join([f"Dr. {doc['name']} ({doc['profession']})" for doc in doctors])
             return f"These are our available doctors: {doctor_str}. {user_message}"
+        
+
+        elif contains_fuzzy_keyword(user_message, target="dates"):
+            dates = get_available_slots(
+    business_id="4000000008542",
+    resource_id="66e6b856b57b88c54a2ab1b9",
+    taxonomy_ids=["9175163"],
+    from_date="2025-05-13T00:00:00.000Z",
+    to_date="2025-05-16T00:00:00.000Z"
+)
+            print(f'{ dates= }')
+            return f"These are our available doctors: {dates}. {user_message}"
+        
 
     except Exception as e:
         print("Error enriching message:", e)
