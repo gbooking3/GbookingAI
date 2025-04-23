@@ -43,6 +43,7 @@ def get_services():
    
     return [s.get("alias", {}).get("ru-ru", "Unnamed") for s in services]
 
+
 def replace_doctor_ids_with_names(structured_data, doctors):
     # Create a map from id to name
     id_to_name = {doc['id']: doc['name'] for doc in doctors}
@@ -81,6 +82,27 @@ def get_doctors():
             })
     print(doctors)
     return doctors
+
+def get_business_doctors(business_id):
+    result = call_gbooking_api("business.get_profile_by_id", {
+        "business": {"id": business_id},
+        "with_networks": True
+    })
+    if not result:
+        return []
+
+    doctors = []
+    
+    for worker in result.get("business", {}).get("resources", []):
+        if worker.get("status") == "ACTIVE" and worker.get("displayInWidget", False):
+            doctors.append({
+                "name": worker.get("nickname", "Unnamed"),
+                "taxonomies": worker.get("taxonomies", "Doctor"),
+                "id": worker.get("id", "Doctor")
+            })
+    print(doctors)
+    return doctors
+
 
 
 def minutes_to_time(minutes):
@@ -260,6 +282,7 @@ def get_business_names(business_ids):
     headers = {"Content-Type": "application/json"}
 
     names = []
+    idsAndNames = []
 
     for business_id in business_ids:
         payload = {
@@ -284,6 +307,7 @@ def get_business_names(business_ids):
             if "result" in result:
                 name = result["result"]["business"]["general_info"].get("name", "Name not found")
                 names.append(name)
+                idsAndNames.append((business_id, name))
             elif "error" in result:
                 names.append(f"❌ Error for ID {business_id}")
             else:
@@ -291,7 +315,12 @@ def get_business_names(business_ids):
         except Exception as e:
             names.append(f"❌ Failed for ID {business_id}: {e}")
 
-    return names
+    return names, idsAndNames
 
 
+
+print("business_ids_from_network ", business_ids_from_network(456))
+bes, nameandids = get_business_names(business_ids_from_network(456))
+for b in nameandids:
+    print(b)
 
