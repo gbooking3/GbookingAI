@@ -4,8 +4,8 @@ import json
 GBOOKING_API_URL = "https://apiv2.gbooking.ru/rpc"
 
 GBOOKING_CRED = {
-    "token": "8e7d61be4f200e39ea29b1231006a248de108d9a",
-    "user": "5b1035dcaff15607133b523f"
+    "token": "02ccadf0487e1e7ae27fea5048c3f53e7330fa45",
+    "user": "67e16c86c43bdd3739a7b415"
 }
 
 BUSINESS_ID = "4000000008542"
@@ -27,6 +27,8 @@ def call_gbooking_api(method, params=None):
     except requests.RequestException as e:
         print(f"[GBooking API Error] {method}: {e}")
         return None
+
+
 
 
 def get_services():
@@ -73,8 +75,8 @@ def get_doctors():
     for worker in result.get("business", {}).get("resources", []):
         if worker.get("status") == "ACTIVE" and worker.get("displayInWidget", False):
             doctors.append({
-                "name": worker.get("name", "Unnamed"),
-                "profession": worker.get("profession", "Doctor"),
+                "name": worker.get("nickname", "Unnamed"),
+                "taxonomies": worker.get("taxonomies", "Doctor"),
                 "id": worker.get("id", "Doctor")
             })
     print(doctors)
@@ -135,8 +137,8 @@ def get_available_slots(business_id, resources_items, taxonomy_ids, from_date, t
             for slot in resource.get("cutSlots", []):
                 if slot.get("available"):
                     start = minutes_to_time(slot['start'])
-                    end = minutes_to_time(slot['end'])
-                    doctor_slots_map.setdefault(resource_id, []).append([start, end])
+                    
+                    doctor_slots_map.setdefault(resource_id, []).append([start])
 
         if doctor_slots_map:
             day_entry = [date]
@@ -150,14 +152,146 @@ def get_available_slots(business_id, resources_items, taxonomy_ids, from_date, t
     return readable_data
 
 
-# Example usage
-get_available_slots(
-    business_id=BUSINESS_ID,
-    resources_items=[
-        {"id": "66e6b856b57b88c54a2ab1b9", "duration": 30},
-        {"id": "66e6b669bbe2b5c4faf5bdd7", "duration": 30}
-    ],
-    taxonomy_ids=["9175163"],
-    from_date="2025-05-13T00:00:00.000Z",
-    to_date="2025-05-16T00:00:00.000Z"
-)
+def reserve_appointment(
+    token,
+    user,
+    business_id,
+    taxonomy_id,
+    resource_id,
+    start_time,
+    duration=30,
+    source="web",
+    price_amount=0,
+    currency="RUB"
+):
+    url = "https://apiv2.gbooking.ru/rpc"
+
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "cred": {
+            "token": token,
+            "user": user
+        },
+        "method": "appointment.reserve_appointment",
+        "params": {
+            "appointment": {
+                "start": start_time,
+                "duration": duration,
+                "price": {
+                    "amount": price_amount,
+                    "currency": currency
+                }
+            },
+            "source": source,
+            "business": {
+                "id": business_id
+            },
+            "taxonomy": {
+                "id": taxonomy_id
+            },
+            "client_appear": "NONE",
+            "resource": {
+                "id": resource_id
+            }
+        }
+    }
+
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(url, data=json.dumps(payload), headers=headers)
+
+    try:
+        res_json = response.json()
+        if "result" in res_json:
+            appointment_info = res_json["result"]
+            start = appointment_info["appointment"]["start"]
+            dur = appointment_info["appointment"]["duration"]
+            return f"✅ Appointment successfully reserved starting at {start} for {dur} minutes."
+        elif "error" in res_json:
+            error_message = res_json["error"].get("message", "Unknown error.")
+            return f"❌ Failed to reserve appointment: {error_message}"
+        else:
+            return "⚠️ Unexpected response format."
+    except Exception as e:
+        return f"❌ Error parsing response: {e}"
+
+
+
+def business_ids_from_network(network_id):
+    url = "https://apiv2.gbooking.ru/rpc"
+
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 7,
+        "cred": {
+            "token": "02ccadf0487e1e7ae27fea5048c3f53e7330fa45",
+            "user": "67e16c86c43bdd3739a7b415"
+        },
+        "method": "business.get_network_data",
+        "params": {
+            "networkID": network_id
+        }
+    }
+
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(url, data=json.dumps(payload), headers=headers)
+
+    try:
+        result = response.json()
+        if "result" in result:
+            businesses = result["result"].get("businesses", [])
+            business_ids = sorted(int(biz["businessID"]) for biz in businesses)
+            return business_ids
+        elif "error" in result:
+            print(f"❌ Error: {result['error'].get('message', 'Unknown error')}")
+            return []
+        else:
+            print("⚠️ Unexpected response format.")
+            return []
+    except Exception as e:
+        print(f"❌ Failed to parse response: {e}")
+        return []
+
+
+
+
+def get_business_names(business_ids):
+    url = "https://apiv2.gbooking.ru/rpc"
+    headers = {"Content-Type": "application/json"}
+
+    names = []
+
+    for business_id in business_ids:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "cred": {
+                "token": "e0197978f235b1fbe2ecc386af12ddf5c1594219",
+                "user": "67e16c3d5ce3f65a969705a0"
+            },
+            "method": "business.get_profile_by_id",
+            "params": {
+                "business": {
+                    "id": str(business_id)
+                },
+                "skip_worker_sorting": True
+            }
+        }
+
+        try:
+            response = requests.post(url, data=json.dumps(payload), headers=headers)
+            result = response.json()
+            if "result" in result:
+                name = result["result"]["business"]["general_info"].get("name", "Name not found")
+                names.append(name)
+            elif "error" in result:
+                names.append(f"❌ Error for ID {business_id}")
+            else:
+                names.append(f"⚠️ Unexpected format for ID {business_id}")
+        except Exception as e:
+            names.append(f"❌ Failed for ID {business_id}: {e}")
+
+    return names
+
+
+

@@ -1,7 +1,7 @@
 # server/app/services/chat_service.py
 import difflib
 from app.ai.init_ai import ask_gemini
-from app.utils.gbooking_helpers import get_services, get_doctors,get_available_slots
+from app.utils.gbooking_helpers import get_services, get_doctors,get_available_slots,reserve_appointment
 from app.models.chat import Chat
 
 def contains_fuzzy_keyword(message, target="services", threshold=0.8):
@@ -20,7 +20,7 @@ def enrich_user_message(user_message):
         elif contains_fuzzy_keyword(user_message, target="doctors"):
             doctors = get_doctors()
             print(f'{ doctors= }')
-            doctor_str = ", ".join([f"Dr. {doc['name']} ({doc['profession']})" for doc in doctors])
+            doctor_str = ", ".join([f"Dr. {doc['name']} ({doc['taxonomies']})" for doc in doctors])
             return f"These are our available doctors: {doctor_str}. {user_message}"
         
 
@@ -28,21 +28,36 @@ def enrich_user_message(user_message):
             dates = get_available_slots(
             business_id="4000000008542",
             resources_items=[
-                {"id": "66e6b856b57b88c54a2ab1b9", "duration": 30},
+                {"id": "67e16c86c43bdd3739a7b415", "duration": 30},
                 {"id": "66e6b669bbe2b5c4faf5bdd7", "duration": 30}
             ],
-            taxonomy_ids=["9175163"],
+            taxonomy_ids=["9268431"],
             from_date="2025-05-13T00:00:00.000Z",
             to_date="2025-05-16T00:00:00.000Z"
             )
             print(f'{ dates= }')
             return f"These are our available dates: {dates}. {user_message}"
+        elif contains_fuzzy_keyword(user_message, target="book"):
+            book  = reserve_appointment(
+                token="02ccadf0487e1e7ae27fea5048c3f53e7330fa45",
+                user="67e16c86c43bdd3739a7b415",
+                business_id="4000000008542",
+                taxonomy_id="9346291",
+                resource_id="66e6b669bbe2b5c4faf5bdd7",
+                start_time="2025-05-15T08:20:00"
+)
+            print(f'{ book= }')
+            return f" {book}. {user_message}" 
         
 
     except Exception as e:
         print("Error enriching message:", e)
 
     return user_message
+
+
+
+
 
 def process_user_message(user_id, user_name, user_message, conversation_id):
     enriched_message = enrich_user_message(user_message)
