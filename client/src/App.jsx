@@ -13,16 +13,20 @@ import UserProvider from "./pages/website/context/UserContext";
 
 import NotFoundPage from './missing/NotFoundPage'
 import {ROUTE_PATHS} from './utils/consts'
-
+import ContactPage from './pages/website/auth/contact/ContactPage';
+import Footer from './components/footer/Footer'
 export default function App() {
   return (
     <UserProvider> 
-      <BrowserRouter>
+      <BrowserRouter >
+        
         <Routes>
           {/* Redirect root (/) to /login */}
           <Route path={ROUTE_PATHS.MAIN.HOME} element={<Navigate to={ROUTE_PATHS.AUTH.LOGIN} replace />} />
           {/* public routes */}
           
+
+          <Route path="/contact" element={<ContactPage />} />
           {/* Auth */}
           <Route path={ROUTE_PATHS.AUTH.LOGIN}  element={<LoginPage />} />
           <Route path={ROUTE_PATHS.AUTH.SIGNUP} element={<SignupPage />} />
@@ -46,6 +50,7 @@ export default function App() {
           {/* catch all */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        <Footer/>
       </BrowserRouter>
     </UserProvider>
   );

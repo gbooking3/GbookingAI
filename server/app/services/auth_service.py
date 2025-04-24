@@ -5,22 +5,39 @@ import smtplib
 import random
 from email.message import EmailMessage
 
-
 def register_user(data):
     """
     Register a new user if email, phone, and ownid are not already taken.
+    If an inactive user matches all three, reactivate the account.
     """
-    if User.find_by_email(data.get("email")):
+    email = data.get("email")
+    phone = data.get("phone")
+    ownid = data.get("ownid")
+
+    existing_user = User.find_by_ownid(ownid)
+
+    if existing_user:
+        if existing_user.get("email") == email and existing_user.get("phone") == phone:
+            if not existing_user.get("is_active", True):
+                # ✅ Reactivate the inactive user
+                User.reactivate_user(ownid)
+                return jsonify({"message": "Account reactivated. Please log in."}), 200
+            else:
+                return jsonify({"error": "ID already exists"}), 400
+        else:
+            return jsonify({"error": "Account previously deleted. Please contact customer support."}), 403
+
+    if User.find_by_email(email):
         return jsonify({"error": "Email already exists"}), 400
 
-    if User.find_by_phone(data.get("phone")):
+    if User.find_by_phone(phone):
         return jsonify({"error": "Phone number already exists"}), 400
 
-    if User.find_by_ownid(data.get("ownid")):
-        return jsonify({"error": "ID already exists"}), 400
-
+    # ✅ Proceed to create a new active user
+    data["is_active"] = True
     User.create_user(data)
     return jsonify({"message": "User registered successfully"}), 201
+
 
 
 def login_user_by_ownid(ownid):
@@ -95,3 +112,6 @@ def send_otp_via_yandex(sender_email, sender_password, recipient_email):
         print(f"Failed to send email: {e}")
 
     return otp
+
+def delete_user_by_id(user_id):
+    return User.delete_by_ownid(user_id)

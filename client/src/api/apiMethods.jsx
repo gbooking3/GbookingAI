@@ -68,11 +68,15 @@ export const apiPut = async (url, data = {}, config = {}) => {
 };
 
 // DELETE request
-export const apiDelete = async (url, config = {}) => {
+export const apiDelete = async (url, data = {}, config = {}) => {
   try {
-    const response = await api.delete(url, config);
+    const response = await api.delete(url, {
+      data, // 🔥 Axios supports body this way
+      ...config,
+    });
     return response.data;
   } catch (error) {
     throw error;
   }
 };
+

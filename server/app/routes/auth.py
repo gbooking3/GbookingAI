@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.services.auth_service import (
     register_user, login_user_by_ownid, refresh_user_token,
-    send_otp_via_yandex, generate_otp
+    send_otp_via_yandex, generate_otp, delete_user_by_id
 )
 from app.models.user import User
 
@@ -26,30 +26,43 @@ def login():
     data = request.get_json()
     ownid = data.get("ownid")
     method = data.get("method")
-    contact_value = User.find_by_ownid(ownid)
-    email = contact_value["email"]
-    print("The email is : ",email)
-    global generated_otp
-    user = User.find_by_ownid(ownid)
-    if not user:
-        return jsonify({ "error": "Invalid credentials" }), 404
 
- 
+    # 🔐 Find user by ownid and ensure they are active
+    user = User.find_by_ownid(ownid)
+    if not user or not user.get("is_active", True):
+        return jsonify({ "error": "User not found or inactive" }), 404
+
+    global generated_otp
+
+    # ✅ Proceed with OTP logic
     if method == "email":
-       
         otp = send_otp_via_yandex(
             sender_email='mohamedabohamad@yandex.com',
             sender_password='qoebhhdmafgowgjn',
-            recipient_email=email
+            recipient_email=user["email"]
         )
     elif method == "phone":
         otp = generate_otp()
-        print(f"Simulated SMS to {contact_value}: OTP = {otp}")
+        print(f"Simulated SMS to {user['phone']}: OTP = {otp}")
     else:
         return jsonify({"error": "Invalid contact method"}), 400
 
     generated_otp = otp
     return login_user_by_ownid(ownid)
+
+
+@bp.route("/delete-account", methods=["DELETE"])
+def delete_account():
+    data = request.get_json()
+    user_id = data.get("ownid")
+
+    if not user_id:
+        return jsonify({"error": "Missing 'ownid'"}), 400
+
+    if delete_user_by_id(user_id):
+        return jsonify({"message": "User deleted successfully."}), 200
+    else:
+        return jsonify({"error": "User not found or could not be deleted."}), 404
 
 
 @bp.route('/verify-otp', methods=['POST'])

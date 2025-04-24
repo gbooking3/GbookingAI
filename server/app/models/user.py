@@ -17,7 +17,14 @@ class User:
         return mongo.db.users.find_one({
             "$or": [{"email": id_value}, {"phone": id_value}]
         })
-    
+    @staticmethod
+    def reactivate_user(ownid):
+        mongo.db.users.update_one(
+            {"ownid": ownid},
+            {"$set": {"is_active": True}}
+        )
+
+
     @staticmethod
     def find_by_ownid_and_phone(ownid):
         return mongo.db.users.find_one({
@@ -25,12 +32,21 @@ class User:
         })
 
     @staticmethod
+    def delete_by_ownid(ownid):
+        result = mongo.db.users.update_one(
+            {"ownid": ownid},
+            {"$set": {"is_active": False}}
+        )
+        return result.modified_count > 0
+
+    @staticmethod
     def create_user(data):
         user_data = {
             "name": data["name"],
             "email": data["email"],
             "phone": data["phone"],
-            "ownid": data["ownid"]
+            "ownid": data["ownid"],
+            "is_active": True
         }
         return mongo.db.users.insert_one(user_data)
 

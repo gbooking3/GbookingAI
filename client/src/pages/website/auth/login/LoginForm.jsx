@@ -73,9 +73,8 @@ function LoginForm() {
     } catch (error) {
       if (!error?.response) {
         setErrorMessage("No Server Response");
-      } else if (error.response?.status === 404) {
-        const errMSG = error.response.data?.error;
-        setErrorMessage(errMSG || "Something went wrong");
+      } else {
+        setErrorMessage("Login failed. Please try again.");
       }
     } finally {
       setLoading(false);

@@ -18,6 +18,7 @@ const InputField = ({
   placeholder,
   instruction,
   allowInstructionMessages = true,
+  disabled = false // ✅ New
 }) => {
   return (
     <div className="mb-3">
@@ -34,6 +35,7 @@ const InputField = ({
           onFocus={focus}
           onBlur={blur}
           placeholder={placeholder}
+          disabled={disabled} // ✅ Applied here
         />
         {allowInstructionMessages && (
           <div
@@ -62,11 +64,13 @@ const InputField = ({
           <span className="text-start">
             {instruction}
           </span>
-
         </div>
       )}
     </div>
   );
 };
+
+
+
 
 export default InputField;

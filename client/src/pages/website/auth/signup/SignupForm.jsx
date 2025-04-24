@@ -114,10 +114,16 @@ function SignupForm() {
       if (!err?.response) {
         setErrMsg("No Server Response");
       } else if (err.response?.status === 400) {
-        const errMessage =  err.response.data?.error;
-        setErrMsg(errMessage || "Somthing Went Wrong")
-      } 
-    } finally {
+        const errMessage = err.response.data?.error;
+        setErrMsg(errMessage || "Something went wrong.");
+      } else if (err.response?.status === 403) {
+        // 🔔 This is the new case for previously deleted user
+        setErrMsg("An account with this ID already exists but was previously deactivated. Please contact customer service for help.");
+      } else {
+        setErrMsg("Registration failed. Please try again.");
+      }
+    }
+     finally {
       setLoading(false);
     }
   };
