@@ -25,7 +25,7 @@ def enrich_user_message(user_message):
             #businesses_id = business_ids_from_network(networkID)
             #businesses_names,_ = get_business_names(businesses_id)
             print(f'{ businesses_names= }')
-            businesses_names_str = ", ".join(businesses_names)
+            businesses_names_str = "\n- ".join(businesses_names)
             return f"These are our departments in the hosptial: {businesses_names_str}. {user_message}"
         
         elif contains_fuzzy_keyword(user_message, target="Cardiology") or contains_fuzzy_keyword(user_message, target="30040"):
@@ -41,7 +41,7 @@ def enrich_user_message(user_message):
             doctorsOfBusiness = get_business_doctors(matching_id)
             print("The doctors of the  ",business_name," with the id ", matching_id, " are:")
             print(f'{ doctorsOfBusiness= }')
-            doctorsOfBusiness_str = ", ".join([f"Doctor. {doc['name']}" for doc in doctorsOfBusiness])
+            doctorsOfBusiness_str = "\n- ".join([f"Doctor. {doc['name']}" for doc in doctorsOfBusiness])
             return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}"
 
         elif contains_fuzzy_keyword(user_message, target="Gastroenterology") or contains_fuzzy_keyword(user_message, target="31200"):
@@ -57,7 +57,7 @@ def enrich_user_message(user_message):
             doctorsOfBusiness = get_business_doctors(matching_id)
             print("The doctors of the  ",business_name," with the id ", matching_id, " are:")
             print(f'{ doctorsOfBusiness= }')
-            doctorsOfBusiness_str = ", ".join([f"Doctor. {doc['name']}" for doc in doctorsOfBusiness])
+            doctorsOfBusiness_str = "\n- ".join([f"Doctor. {doc['name']}" for doc in doctorsOfBusiness])
             return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}"
         
         elif contains_fuzzy_keyword(user_message, target="Neurology") or contains_fuzzy_keyword(user_message, target="30300"):
@@ -73,7 +73,7 @@ def enrich_user_message(user_message):
             doctorsOfBusiness = get_business_doctors(matching_id)
             print("The doctors of the  ",business_name," with the id ", matching_id, " are:")
             print(f'{ doctorsOfBusiness= }')
-            doctorsOfBusiness_str = ", ".join([f"Doctor. {doc['name']}" for doc in doctorsOfBusiness])
+            doctorsOfBusiness_str = "\n- ".join([f"Doctor. {doc['name']}" for doc in doctorsOfBusiness])
             return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}"
         
         elif contains_fuzzy_keyword(user_message, target="CT") or contains_fuzzy_keyword(user_message, target="46350"):
@@ -90,7 +90,7 @@ def enrich_user_message(user_message):
             doctorsOfBusiness = get_business_doctors(matching_id)
             print("The doctors of the  ",business_name," with the id ", matching_id, " are:")
             print(f'{ doctorsOfBusiness= }')
-            doctorsOfBusiness_str = ", ".join([f"Doctor. {doc['name']}" for doc in doctorsOfBusiness])
+            doctorsOfBusiness_str = "\n- ".join([f"Doctor. {doc['name']}" for doc in doctorsOfBusiness])
             return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}"
         
 
@@ -102,8 +102,12 @@ def enrich_user_message(user_message):
         elif contains_fuzzy_keyword(user_message, target="services"):
             services_list = get_services()
             print(f'{ services_list= }')
-            services_str = ", ".join(services_list)
-            return f"We offer the following services: {services_str}. {user_message}"
+            services_str = "\n- ".join(services_list)
+            return (
+                "We offer the following services:\n"
+                f"{services_str}\n\n"
+                "Please select the service you need so I can guide you through the booking process."
+            )
 
        
        # elif contains_fuzzy_keyword(user_message, target="doctors"):

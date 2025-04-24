@@ -210,11 +210,15 @@ function ChatBot() {
                   maxWidth: "80%",
                   marginLeft: msg.from === "user" ? "auto" : "0",
                   marginRight: msg.from === "bot" ? "auto" : "0",
+                  whiteSpace: "pre-wrap",
+                  direction: "ltr",
                 }}
               >
                 {msg.text}
               </div>
             ))}
+
+
           </div>
 
           {errorMessage && <p className="error-message">{errorMessage}</p>}
