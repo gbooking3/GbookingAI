@@ -4,9 +4,11 @@ from datetime import datetime
 from datetime import datetime
 from zoneinfo import ZoneInfo  # or use pytz for Python < 3.9
 
+
 class Chat:
     @staticmethod
-    def start_or_update_conversation(ownid, user_name, user_msg, bot_msg, conversation_id=None):
+    def start_or_update_conversation(ownid, user_name, user_msg, bot_msg, conversation_id=None, business_id=None,
+                                     resource_id=None, taxonomy_id=None):
         message_pair = [
             {"from": user_name, "text": user_msg},
             {"from": "bot", "text": bot_msg}
@@ -15,7 +17,14 @@ class Chat:
         if conversation_id:
             mongo.db.chats.update_one(
                 {"_id": ObjectId(conversation_id)},
-                {"$push": {"messages": {"$each": message_pair}}}
+                {
+                    "$push": {"messages": {"$each": message_pair}},
+                    "$set": {
+                        "business_id": business_id,
+                        "resource_id": resource_id,
+                        "taxonomy_id": taxonomy_id
+                    }
+                }
             )
             return conversation_id
         else:
@@ -23,11 +32,14 @@ class Chat:
             chat_entry = {
                 "ownid": ownid,
                 "messages": message_pair,
-                "created_at": current_msg_time.isoformat()
+                "created_at": current_msg_time.isoformat(),
+                "business_id": business_id,
+                "resource_id": resource_id,
+                "taxonomy_id": taxonomy_id
+
             }
             result = mongo.db.chats.insert_one(chat_entry)
             return str(result.inserted_id)
-
 
     @staticmethod
     def get_user_chats(ownid):
@@ -37,3 +49,45 @@ class Chat:
             chat["_id"] = str(chat["_id"])  # Convert ObjectId to string
             chat_list.append(chat)
         return chat_list
+
+    @staticmethod
+    def get_patient_business_id(conversation_id):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            return chat.get("business_id")
+        return None
+
+    @staticmethod
+    def get_patient_resource_id(conversation_id):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            return chat.get("resource_id")
+        return None
+
+    @staticmethod
+    def get_patient_toxonomy_id(conversation_id):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            return chat.get("taxonomy_id")
+        return None
+
+    @staticmethod
+    def set_patient_business_id(conversation_id, business_id):
+        mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"business_id": business_id}}
+        )
+
+    @staticmethod
+    def set_patient_resource_id(conversation_id, resource_id):
+        mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"resource_id": resource_id}}
+        )
+
+    @staticmethod
+    def set_patient_taxonomy_id(conversation_id, taxonomy_id):
+        mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"taxonomy_id": taxonomy_id}}
+        )

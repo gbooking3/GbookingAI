@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime, timedelta
 import json
+
 GBOOKING_API_URL = "https://apiv2.gbooking.ru/rpc"
 
 GBOOKING_CRED = {
@@ -10,6 +11,7 @@ GBOOKING_CRED = {
 
 BUSINESS_ID = "4000000008542"
 HEADERS = {"Content-Type": "application/json"}
+
 
 def call_gbooking_api(method, params=None):
     payload = {
@@ -21,7 +23,7 @@ def call_gbooking_api(method, params=None):
     }
 
     try:
-        response = requests.post(GBOOKING_API_URL,headers = HEADERS ,json=payload)
+        response = requests.post(GBOOKING_API_URL, headers=HEADERS, json=payload)
         response.raise_for_status()
         return response.json().get("result")
     except requests.RequestException as e:
@@ -29,19 +31,81 @@ def call_gbooking_api(method, params=None):
         return None
 
 
+def get_all_businesses_services(business_ids):
+    all_services = []
+
+    for business_id in business_ids:
+        result = call_gbooking_api("business.get_profile_by_id", {
+            "business": {"id": business_id},
+            "with_networks": True
+        })
+
+        if not result:
+            continue
+
+        services = result.get("business", {}).get("taxonomies", [])
+
+        for service in services:
+            service_id = service.get("id")
+            service_name = service.get("alias", {}).get("ru-ru", "Unnamed")
+            all_services.append({
+                "id": service_id,
+                "name": service_name
+            })
+
+    return all_services
 
 
-def get_services():
+def get_services(business_id):
     result = call_gbooking_api("business.get_profile_by_id", {
-        "business": {"id": BUSINESS_ID},
+        "business": {"id": business_id},
         "with_networks": True
     })
     if not result:
         return []
 
     services = result.get("business", {}).get("taxonomies", [])
-   
-    return [s.get("alias", {}).get("ru-ru", "Unnamed") for s in services]
+
+    return [
+        {
+            "id": service.get("id"),
+            "name": service.get("alias", {}).get("ru-ru", "Unnamed")
+        }
+        for service in services
+    ]
+
+
+def get_doctor_services(business_id, resource_id):
+    response = call_gbooking_api("business.get_profile_by_id", {
+        "business": {"id": business_id},
+        "with_networks": True
+    })
+
+    if not response:
+        return []
+
+    business = response.get("business", {})
+    resources = business.get("resources", [])
+    taxonomies = business.get("taxonomies", [])
+
+    # Find the doctor with matching resource_id
+    doctor = next((r for r in resources if r.get("id") == resource_id), None)
+    if not doctor:
+        return []
+
+    doctor_taxonomy_ids = doctor.get("taxonomies", [])
+
+    # Filter and format only the taxonomies this doctor provides
+    doctor_services = [
+        {
+            "id": t.get("id"),
+            "name": t.get("alias", {}).get("ru-ru", "Unnamed")
+        }
+        for t in taxonomies
+        if t.get("id") in doctor_taxonomy_ids
+    ]
+
+    return doctor_services
 
 
 def replace_doctor_ids_with_names(structured_data, doctors):
@@ -72,7 +136,7 @@ def get_doctors():
         return []
 
     doctors = []
-    
+
     for worker in result.get("business", {}).get("resources", []):
         if worker.get("status") == "ACTIVE" and worker.get("displayInWidget", False):
             doctors.append({
@@ -82,6 +146,7 @@ def get_doctors():
             })
     print(doctors)
     return doctors
+
 
 def get_business_doctors(business_id):
     result = call_gbooking_api("business.get_profile_by_id", {
@@ -92,7 +157,7 @@ def get_business_doctors(business_id):
         return []
 
     doctors = []
-    
+
     for worker in result.get("business", {}).get("resources", []):
         if worker.get("status") == "ACTIVE" and worker.get("displayInWidget", False):
             doctors.append({
@@ -104,11 +169,23 @@ def get_business_doctors(business_id):
     return doctors
 
 
-
 def minutes_to_time(minutes):
     """Convert minutes to HH:MM format."""
     time = timedelta(minutes=minutes)
     return str(time)
+
+
+import requests
+import json
+from datetime import datetime, timedelta
+
+
+def minutes_to_time(minutes):
+    """Helper function to convert minutes since midnight to HH:MM format."""
+    hours = minutes // 60
+    mins = minutes % 60
+    return f"{hours:02d}:{mins:02d}"
+
 
 def get_available_slots(business_id, resources_items, taxonomy_ids, from_date, to_date):
     url = "https://cracslots.gbooking.ru/rpc"
@@ -119,7 +196,7 @@ def get_available_slots(business_id, resources_items, taxonomy_ids, from_date, t
     payload = {
         "jsonrpc": "2.0",
         "id": 1,
-        "cred": {},  # Add credentials here if required
+        "cred": {},  # Add credentials here if needed
         "method": "CracSlots.GetCRACResourcesAndRooms",
         "params": {
             "business": {
@@ -146,45 +223,43 @@ def get_available_slots(business_id, resources_items, taxonomy_ids, from_date, t
 
     response = requests.post(url, headers=headers, data=json.dumps(payload))
     response_data = response.json()
-    structured_data = []
+
     result = response_data.get("result", {})
     slots = result.get("slots", [])
 
+    structured_data = []
+
     for day_slot in slots:
-        date = day_slot['date']
+        date = day_slot.get("date")
         doctor_slots_map = {}
 
         for resource in day_slot.get("resources", []):
             resource_id = resource.get("resourceId")
             for slot in resource.get("cutSlots", []):
                 if slot.get("available"):
-                    start = minutes_to_time(slot['start'])
-                    
-                    doctor_slots_map.setdefault(resource_id, []).append([start])
+                    start_time = minutes_to_time(slot["start"])
+                    doctor_slots_map.setdefault(resource_id, []).append(start_time)
 
         if doctor_slots_map:
-            day_entry = [date]
-            for doctor_id, time_ranges in doctor_slots_map.items():
-                day_entry.append([doctor_id, time_ranges])
-            structured_data.append(day_entry)
+            structured_data.append({
+                "date": date,
+                "slots": doctor_slots_map
+            })
 
-    doctors = get_doctors()
-    readable_data = replace_doctor_ids_with_names(structured_data, doctors)
-    print(json.dumps(readable_data, indent=2, ensure_ascii=False))  # Nice readable output
-    return readable_data
+    return structured_data
 
 
 def reserve_appointment(
-    token,
-    user,
-    business_id,
-    taxonomy_id,
-    resource_id,
-    start_time,
-    duration=30,
-    source="web",
-    price_amount=0,
-    currency="RUB"
+        token,
+        user,
+        business_id,
+        taxonomy_id,
+        resource_id,
+        start_time,
+        duration=30,
+        source="web",
+        price_amount=0,
+        currency="RUB"
 ):
     url = "https://apiv2.gbooking.ru/rpc"
 
@@ -238,7 +313,6 @@ def reserve_appointment(
         return f"❌ Error parsing response: {e}"
 
 
-
 def business_ids_from_network(network_id):
     url = "https://apiv2.gbooking.ru/rpc"
 
@@ -273,8 +347,6 @@ def business_ids_from_network(network_id):
     except Exception as e:
         print(f"❌ Failed to parse response: {e}")
         return []
-
-
 
 
 def get_business_names(business_ids):
@@ -319,8 +391,4 @@ def get_business_names(business_ids):
 
 
 
-print("business_ids_from_network ", business_ids_from_network(456))
-bes, nameandids = get_business_names(business_ids_from_network(456))
-for b in nameandids:
-    print(b)
 
