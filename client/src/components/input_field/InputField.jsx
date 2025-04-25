@@ -18,25 +18,42 @@ const InputField = ({
   placeholder,
   instruction,
   allowInstructionMessages = true,
-  disabled = false // ✅ New
+  disabled = false,
+  rows = 5 // ✅ Default for textarea
 }) => {
   return (
     <div className="mb-3">
       <div className="position-relative">
-        <MDBInput
-          wrapperClass="mb-0"
-          type={type}
-          id={label}
-          label={label}
-          value={value}
-          onChange={onChange}
-          valid={valid ? "true" : undefined}
-          aria-describedby={`${label}note`}
-          onFocus={focus}
-          onBlur={blur}
-          placeholder={placeholder}
-          disabled={disabled} // ✅ Applied here
-        />
+        {type === "textarea" ? (
+          <textarea
+            id={label}
+            className="form-control"
+            value={value}
+            onChange={onChange}
+            onFocus={focus}
+            onBlur={blur}
+            placeholder={placeholder}
+            rows={rows}
+            disabled={disabled}
+            style={{ resize: "vertical", minHeight: "160px" }} // ✅ Taller textarea
+          />
+        ) : (
+          <MDBInput
+            wrapperClass="mb-0"
+            type={type}
+            id={label}
+            label={label}
+            value={value}
+            onChange={onChange}
+            valid={valid ? "true" : undefined}
+            aria-describedby={`${label}note`}
+            onFocus={focus}
+            onBlur={blur}
+            placeholder={placeholder}
+            disabled={disabled}
+          />
+        )}
+
         {allowInstructionMessages && (
           <div
             className="position-absolute"
@@ -69,8 +86,5 @@ const InputField = ({
     </div>
   );
 };
-
-
-
 
 export default InputField;

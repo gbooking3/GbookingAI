@@ -29,9 +29,10 @@ function LoginForm() {
   const location = useLocation();
 
   const isRegistered = location.state?.registered || false;
+  const isReactivated = location.state?.reactivated || false;
   const isLoggedOut = location.state?.logged_out || false;
-  const userId = useInput(location.state?.ownid || "", REGEX.ID, REGEX_MESSAGES.ID);
 
+  const userId = useInput(location.state?.ownid || "", REGEX.ID, REGEX_MESSAGES.ID);
   const cookies = new Cookies();
 
   // ✅ Redirect to dashboard if already logged in
@@ -40,6 +41,9 @@ function LoginForm() {
     if (accessToken) {
       navigateTo(ROUTE_PATHS.MAIN.DASHBOARD, { replace: true });
     }
+
+    // Optional: Clear the state message after first load
+    window.history.replaceState({}, document.title);
   }, [navigateTo]);
 
   const handleSubmit = async (e) => {
@@ -73,6 +77,9 @@ function LoginForm() {
     } catch (error) {
       if (!error?.response) {
         setErrorMessage("No Server Response");
+      } else if (error.response?.status === 404) {
+        const errMSG = error.response.data?.error;
+        setErrorMessage(errMSG || "Something went wrong");
       } else {
         setErrorMessage("Login failed. Please try again.");
       }
@@ -94,20 +101,21 @@ function LoginForm() {
             {isRegistered && (
               <p className="successmsg">
                 Registered successfully! Please log in below
-                <FontAwesomeIcon
-                  icon={faCircleCheck}
-                  style={{ fontSize: "20px", color: "green", marginLeft: "10px" }}
-                />
+                <FontAwesomeIcon icon={faCircleCheck} style={{ fontSize: "20px", color: "green", marginLeft: "10px" }} />
+              </p>
+            )}
+
+            {isReactivated && (
+              <p className="successmsg">
+                Account reactivated! Please log in.
+                <FontAwesomeIcon icon={faCircleCheck} style={{ fontSize: "20px", color: "green", marginLeft: "10px" }} />
               </p>
             )}
 
             {isLoggedOut && (
               <p className="successmsg">
                 Logged out successfully.
-                <FontAwesomeIcon
-                  icon={faCircleCheck}
-                  style={{ fontSize: "20px", color: "green", marginLeft: "10px" }}
-                />
+                <FontAwesomeIcon icon={faCircleCheck} style={{ fontSize: "20px", color: "green", marginLeft: "10px" }} />
               </p>
             )}
 

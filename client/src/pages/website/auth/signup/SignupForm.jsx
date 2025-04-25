@@ -75,41 +75,50 @@ function SignupForm() {
   const handleSubmit = async (e) => {
     try {
       setErrMsg("");
-      // Prevent the default form submission behavior
       e.preventDefault();
       setLoading(true);
       setErrorMessage("");
-
-      // Validate form fields
+  
       if (
         !userId.valid ||
         !userEmail.valid ||
         !userPhone.valid ||
-        !userName.valid 
+        !userName.valid
       ) {
         setErrMsg("Invalid Entry");
         return;
       }
-
-      if (!validateIsraeliID(userId.value)){
-        setErrMsg("Not Valid ID Number.")
+  
+      if (!validateIsraeliID(userId.value)) {
+        setErrMsg("Not Valid ID Number.");
         return;
       }
-      const user = {  
-        ownid:  userId.value, 
-        email: userEmail.value,  
-        phone: userPhone.value, 
-        name: userName.value, 
+  
+      const user = {
+        ownid: userId.value,
+        email: userEmail.value,
+        phone: userPhone.value,
+        name: userName.value,
       };
-
-      const response = await apiPost(API_ENDPOINTS.AUTH.SIGNUP,  user)
-    
-      navigateTo(ROUTE_PATHS.AUTH.LOGIN, { 
-        state: {ownid:  userId.value,  registered: true },
-        replace: true
-       });
-
-
+  
+      const response = await apiPost(API_ENDPOINTS.AUTH.SIGNUP, user);
+  
+      const message = response?.message || "";
+  
+      if (message.includes("reactivated")) {
+        // 🔁 Navigate with reactivated flag
+        navigateTo(ROUTE_PATHS.AUTH.LOGIN, {
+          state: { ownid: userId.value, reactivated: true },
+          replace: true,
+        });
+      } else {
+        // 🆕 Navigate with registered flag
+        navigateTo(ROUTE_PATHS.AUTH.LOGIN, {
+          state: { ownid: userId.value, registered: true },
+          replace: true,
+        });
+      }
+  
     } catch (err) {
       if (!err?.response) {
         setErrMsg("No Server Response");
@@ -117,16 +126,15 @@ function SignupForm() {
         const errMessage = err.response.data?.error;
         setErrMsg(errMessage || "Something went wrong.");
       } else if (err.response?.status === 403) {
-        // 🔔 This is the new case for previously deleted user
-        setErrMsg("An account with this ID already exists but was previously deactivated. Please contact customer service for help.");
+        setErrMsg("An account with this ID already exists but was previously deactivated. Please contact customer service.");
       } else {
         setErrMsg("Registration failed. Please try again.");
       }
-    }
-     finally {
+    } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="form-container">

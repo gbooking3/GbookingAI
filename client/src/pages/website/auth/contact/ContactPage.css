@@ -84,3 +84,11 @@
     color: white;
   }
   
+  textarea.input-field {
+    min-height: 160px;
+    resize: vertical;
+    padding: 10px;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  

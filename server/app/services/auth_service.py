@@ -4,7 +4,6 @@ from app.models.user import User
 import smtplib
 import random
 from email.message import EmailMessage
-
 def register_user(data):
     """
     Register a new user if email, phone, and ownid are not already taken.
@@ -17,26 +16,33 @@ def register_user(data):
     existing_user = User.find_by_ownid(ownid)
 
     if existing_user:
-        if existing_user.get("email") == email and existing_user.get("phone") == phone:
-            if not existing_user.get("is_active", True):
-                # ✅ Reactivate the inactive user
+        if not existing_user.get("is_active", True):
+            # Account is inactive (soft-deleted)
+            if (existing_user.get("email") == email and existing_user.get("phone") == phone):
+                # ✅ Safe to reactivate — all credentials match
                 User.reactivate_user(ownid)
                 return jsonify({"message": "Account reactivated. Please log in."}), 200
             else:
-                return jsonify({"error": "ID already exists"}), 400
+                # ⚠️ Credentials don't match — potential impersonation
+                return jsonify({
+                    "error": "This ID was previously deleted. Please contact support to recover the account."
+                }), 403
         else:
-            return jsonify({"error": "Account previously deleted. Please contact customer support."}), 403
+            # Active account already exists
+            return jsonify({"error": "ID already exists"}), 400
 
+    # No user with this ID exists — check email & phone globally
     if User.find_by_email(email):
         return jsonify({"error": "Email already exists"}), 400
 
     if User.find_by_phone(phone):
         return jsonify({"error": "Phone number already exists"}), 400
 
-    # ✅ Proceed to create a new active user
+    # ✅ All checks passed — create new user
     data["is_active"] = True
     User.create_user(data)
     return jsonify({"message": "User registered successfully"}), 201
+
 
 
 

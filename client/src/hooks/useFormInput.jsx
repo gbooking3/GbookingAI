@@ -26,6 +26,7 @@ const useFormInput = (initialValue, validationRegex, validationMessages) => {
 
   return {
     value,
+    setValue,
     valid,
     focus,
     instruction,
