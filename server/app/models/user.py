@@ -50,7 +50,13 @@ class User:
         }
         return mongo.db.users.insert_one(user_data)
 
-   
+    @staticmethod
+    def update_user_name(data):
+        result = mongo.db.users.update_one(
+            {'ownid': data['ownid']},
+            {'$set': {'name': data['name']}}
+        )
+        return result.modified_count > 0
 
     @staticmethod
     def to_json(user):

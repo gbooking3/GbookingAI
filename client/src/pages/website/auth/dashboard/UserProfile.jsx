@@ -8,9 +8,10 @@ import useInput from '../../../../hooks/useFormInput';
 import { REGEX, REGEX_MESSAGES, ROUTE_PATHS } from '../../../../utils/consts';
 import Cookies from "universal-cookie";
 import './ProfilePage.css'; 
-import { apiDelete } from "../../../../api/apiMethods";
+import { apiDelete, apiPut } from "../../../../api/apiMethods";
 
 import Loading from "../../../../components/loading/Loading";
+
 function ProfilePage() {
   const navigate = useNavigate();
   const userContext = useContext(User);
@@ -24,33 +25,72 @@ function ProfilePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const location = useLocation();
+
   useEffect(() => {
-      const cookies = new Cookies();
-      const accessToken = cookies.get("access_token");
-    
-      const isOnDashboard = location.pathname === ROUTE_PATHS.MAIN.PROFILE;
-    
-      if (!accessToken && isOnDashboard) {
-        userContext.setAuth(null); // Clear any existing user context
-        navigate(ROUTE_PATHS.AUTH.LOGIN, {
-          replace: true,
-        });
-      }
-    }, [location.pathname, navigate, userContext]);
+    const cookies = new Cookies();
+    const accessToken = cookies.get("access_token");
 
+    const isOnDashboard = location.pathname === ROUTE_PATHS.MAIN.PROFILE;
 
-  const handleSave = () => {
+    if (!accessToken && isOnDashboard) {
+      userContext.setAuth(null); // Clear any existing user context
+      navigate(ROUTE_PATHS.AUTH.LOGIN, { replace: true });
+    }
+  }, [location.pathname, navigate, userContext]);
+
+  const handleSave = async (e) => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsLoading(true);
+  
+    if (!userName.value.trim()) {
+      setErrorMessage("Name cannot be empty.");
+      setIsLoading(false);
+      return;
+    }
+  
     const updatedUser = {
-      name: userName.value,
-      email: userEmail.value,
-      phone: userPhone.value,
+      name: userName.value.trim(),
       ownid: userId.value
     };
-    console.log("Saving changes:", updatedUser);
-    alert("Changes saved successfully!");
+  
+    try {
+      const response = await apiPut('auth/edit-user-name', updatedUser);
+  
+      if (response?.message === "User name updated successfully.") {
+        setSuccessMessage("✅ Name updated successfully.");
+        
+        // ✅ Update user context
+        userContext.setAuth((prev) => ({
+          ...prev,
+          userDetails: {
+            ...prev.userDetails,
+            name: updatedUser.name
+          }
+        }));
+      }
+    } catch (error) {
+      console.error("Update error:", error);
+      const message = error.response?.data?.error;
+  
+      if (message === "name not changed") {
+        setErrorMessage("⚠️ You must enter a different name.");
+      } else {
+        setErrorMessage(message || "Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => {
+        setErrorMessage("");
+        setSuccessMessage("");
+      }, 4000);
+    }
   };
+  
 
   const handleDeleteClick = () => {
     setShowDeleteConfirm(true);
@@ -60,22 +100,14 @@ function ProfilePage() {
   const confirmDelete = async () => {
     try {
       const res = await apiDelete('auth/delete-account', { ownid: userId.value });
-  
+
       if (res && res.message === "User deleted successfully.") {
-        // ✅ Remove cookies
         const cookies = new Cookies();
         cookies.remove("access_token", { path: "/" });
         cookies.remove("refresh_token", { path: "/" });
-  
-        // ✅ Reset context
         userContext.setAuth(null);
-  
-        // ✅ Redirect user
         alert("Account deleted successfully.");
-            
-        navigate(ROUTE_PATHS.AUTH.LOGIN, {
-          replace: true
-        });
+        navigate(ROUTE_PATHS.AUTH.LOGIN, { replace: true });
       } else {
         alert(res?.error || "Failed to delete account.");
       }
@@ -84,11 +116,11 @@ function ProfilePage() {
       alert("An error occurred while deleting your account.");
     }
   };
-  
-  
+
   if (isLoading) {
     return <Loading />;
   }
+
   return (
     <div style={{ display: "flex", minHeight: "100vh", fontFamily: "Arial, sans-serif" }}>
       {/* Sidebar */}
@@ -114,6 +146,14 @@ function ProfilePage() {
           👤 Edit Profile
         </h1>
 
+        {/* Feedback Messages */}
+        {errorMessage && (
+          <div className="errmsg" style={{ marginBottom: "20px" }}>{errorMessage}</div>
+        )}
+        {successMessage && (
+          <div className="successmsg" style={{ marginBottom: "20px" }}>{successMessage}</div>
+        )}
+
         <div style={{
           backgroundColor: "#ffffff",
           padding: "32px",
@@ -128,11 +168,22 @@ function ProfilePage() {
             gap: "24px",
             marginBottom: "32px"
           }}>
-            <InputField type="text" label="Full Name" {...userName} />
+            <InputField
+              type="text"
+              label="Full Name"
+              value={userName.value}
+              onChange={userName.handleChange}
+              valid={userName.valid}
+              focus={userName.handleFocus}
+              blur={userName.handleBlur}
+              instruction={userName.instruction}
+            />
+
             <InputField type="email" label="Email" {...userEmail} disabled={true} />
             <InputField type="tel" label="Phone" {...userPhone} disabled={true} />
             <InputField type="text" label="ID" {...userId} disabled={true} />
           </div>
+
           <p style={{
             color: "#d32f2f",
             backgroundColor: "#fff3cd",
@@ -145,13 +196,12 @@ function ProfilePage() {
             textAlign: "center"
           }}>
             <strong>Need to update your Email, Phone, or ID?</strong><br />
-            For security reasons, please reach out via the 
-            <button
+            For security reasons, please reach out via the <button
               onClick={() => {
                 setIsLoading(true);
                 setTimeout(() => {
                   navigate("/contact");
-                }, 1500); // 1.5s loading screen
+                }, 1500);
               }}
               style={{
                 color: "#0d47a1",
@@ -164,31 +214,16 @@ function ProfilePage() {
               }}
             >
               Contact Us
-            </button>
-            page and our support team will assist you.
+            </button> page and our support team will assist you.
           </p>
 
-
-          {/* Buttons */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <button
-              onClick={handleSave}
-              className="save-button"
-            >
-              💾 <span>Save Changes</span>
-            </button>
-
-            <button
-              onClick={handleDeleteClick}
-              className="delete-button"
-            >
-              🗑️ <span>Delete Account</span>
-            </button>
+            <button onClick={handleSave} className="save-button">💾 <span>Save Changes</span></button>
+            <button onClick={handleDeleteClick} className="delete-button">🗑️ <span>Delete Account</span></button>
           </div>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="modal-backdrop">
           <div className="modal-box">

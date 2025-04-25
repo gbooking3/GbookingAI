@@ -19,12 +19,6 @@ const ContactPage = () => {
           <button type="submit">Send Message</button>
         </form>
 
-        <div className="contact-details">
-          <p><strong>Email:</strong> support@gbooking.com</p>
-          <p><strong>Phone:</strong> +972-50-123-4567</p>
-          <p><strong>Address:</strong> Haifa, Israel</p>
-        </div>
-
         <button 
           className="back-button" 
           onClick={() => navigate('/')}

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.services.auth_service import (
     register_user, login_user_by_ownid, refresh_user_token,
-    send_otp_via_yandex, generate_otp, delete_user_by_id
+    send_otp_via_yandex, generate_otp, delete_user_by_id, update_user_name
 )
 from app.models.user import User
 
@@ -88,3 +88,25 @@ def refresh():
         return jsonify({"error": "Content-Type must be application/json"}), 400
     data = request.get_json()
     return refresh_user_token(data)
+
+
+@bp.route('/edit-user-name', methods=['PUT'])
+def update_full_name():
+    data      = request.get_json()
+    ownid     = data['ownid'] 
+    full_name = data['name' ] 
+    user      = User.find_by_ownid(ownid)
+
+    if not ownid:
+        return jsonify({'error':"Missing 'ownid'"}), 400
+
+    if not full_name:
+        return jsonify({'error':"Missing 'name'"}), 400
+
+    if full_name == user.get('name', ''):
+        return jsonify({'error':"name not changed"}), 400
+
+    if update_user_name(data):
+        return jsonify({"message": "User name updated successfully."}), 200
+    else:
+        return jsonify({"error": "Failed to update user name."}), 200        

@@ -115,3 +115,6 @@ def send_otp_via_yandex(sender_email, sender_password, recipient_email):
 
 def delete_user_by_id(user_id):
     return User.delete_by_ownid(user_id)
+
+def update_user_name(data):
+    return User.update_user_name(data)

@@ -19,7 +19,7 @@ export default function App() {
   return (
     <UserProvider> 
       <BrowserRouter >
-        
+      
         <Routes>
           {/* Redirect root (/) to /login */}
           <Route path={ROUTE_PATHS.MAIN.HOME} element={<Navigate to={ROUTE_PATHS.AUTH.LOGIN} replace />} />

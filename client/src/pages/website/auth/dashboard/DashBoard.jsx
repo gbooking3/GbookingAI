@@ -37,7 +37,10 @@ function ChatBot() {
         replace: true,
       });
     }
-  }, [location.pathname]);
+  }, [location.pathname, navigateTo, userContext]);
+  
+
+
   
   const handleSend = async (e) => {
     e.preventDefault();
@@ -77,6 +80,10 @@ function ChatBot() {
       setLoading(false);
     }
   };
+
+
+
+
   const handleLogoutClick = () => {
     const cookies = new Cookies();
     cookies.remove("access_token", { path: "/" });
