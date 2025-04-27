@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo  # or use pytz for Python < 3.9
 class Chat:
     @staticmethod
     def start_or_update_conversation(ownid, user_name, user_msg, bot_msg, conversation_id=None, business_id=None,
-                                     resource_id=None, taxonomy_id=None):
+                                     resource_id=None, taxonomy_id=None, date = None):
         message_pair = [
             {"from": user_name, "text": user_msg},
             {"from": "bot", "text": bot_msg}
@@ -22,7 +22,8 @@ class Chat:
                     "$set": {
                         "business_id": business_id,
                         "resource_id": resource_id,
-                        "taxonomy_id": taxonomy_id
+                        "taxonomy_id": taxonomy_id,
+                        "date": date
                     }
                 }
             )
@@ -35,7 +36,8 @@ class Chat:
                 "created_at": current_msg_time.isoformat(),
                 "business_id": business_id,
                 "resource_id": resource_id,
-                "taxonomy_id": taxonomy_id
+                "taxonomy_id": taxonomy_id,
+                "date": date
 
             }
             result = mongo.db.chats.insert_one(chat_entry)
@@ -70,6 +72,13 @@ class Chat:
         if chat:
             return chat.get("taxonomy_id")
         return None
+    
+    @staticmethod
+    def get_patient_date(conversation_id):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            return chat.get("date")
+        return None
 
     @staticmethod
     def set_patient_business_id(conversation_id, business_id):
@@ -90,4 +99,24 @@ class Chat:
         mongo.db.chats.update_one(
             {"_id": ObjectId(conversation_id)},
             {"$set": {"taxonomy_id": taxonomy_id}}
+        )
+
+    @staticmethod
+    def set_patient_date(conversation_id, date):
+        mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"date": date}}
+        )
+
+    @staticmethod
+    def set_patient_time(conversation_id, time):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            date = chat.get("date")
+        print("date ", date)
+        date_and_time = date + "T" + str(time) + ":00"
+        print("date_and_time ",date_and_time)
+        mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"date": date_and_time}}
         )
