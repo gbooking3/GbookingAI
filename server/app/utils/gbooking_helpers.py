@@ -391,4 +391,51 @@ def get_business_names(business_ids):
 
 
 
+def add_client(ID, business_id, client_name, client_surname, client_phone, client_email):
+    # Define the URL for the API endpoint
+    url = "https://apiv2.gbooking.ru/rpc"
+
+    # Set up the headers, if needed (e.g., content type)
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # Define the data payload with the 'id' parameter
+    data = {
+        "jsonrpc": "2.0",
+        "id": ID,  # The 'id' parameter passed in the function
+        "cred": {
+            "token": "02ccadf0487e1e7ae27fea5048c3f53e7330fa45",  # Token passed as parameter
+            "user": "67e16c86c43bdd3739a7b415"    # User passed as parameter
+        },
+        "method": "client.add_client",
+        "params": {
+            "business": {
+                "id": business_id  # Business ID passed as parameter
+            },
+            "client": {
+                "name": client_name,  # Client name passed as parameter
+                "surname": client_surname,  # Client surname passed as parameter
+                "phone": [
+                    {
+                        "country_code": client_phone['country_code'],  # Country code passed in dictionary
+                        "area_code": client_phone['area_code'],  # Area code passed in dictionary
+                        "number": client_phone['number']  # Phone number passed in dictionary
+                    }
+                ],
+                "email": [client_email]  # Client email passed as parameter
+            }
+        }
+    }
+
+    # Make the POST request
+    response = requests.post(url, headers=headers, json=data)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        print("Client added successfully!")
+        print(json.dumps(response.json(), indent=2))  # Pretty print the JSON response
+    else:
+        print(f"Failed to add client: {response.status_code}")
+        print(response.text)
 
