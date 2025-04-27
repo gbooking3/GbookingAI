@@ -365,7 +365,7 @@ def enrich_user_message(user_message, conversation_id):
                 ],
                 taxonomy_ids=[patient_taxonomy_id],
                 from_date="2025-04-30T00:00:00.000Z",
-                to_date="2025-05-02T00:00:00.000Z"
+                to_date="2025-05-20T00:00:00.000Z"
             )
 
             print(f'{ dates= }')
@@ -404,16 +404,24 @@ def enrich_user_message(user_message, conversation_id):
         #    return f"These are our available dates: {dates}. {user_message}", ""
 
         if contains_fuzzy_keyword(user_message, target="book"):
+            patient_business_id = Chat.get_patient_business_id(conversation_id)
+            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
+            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
+            patient_date = Chat.get_patient_date(conversation_id)
+            print("buss id ", patient_business_id)
+            print("resource id ", patient_reource_id)
+            print("tax id ", patient_taxonomy_id)
+            print("date :" ,patient_date)
             book = reserve_appointment(
                 token="02ccadf0487e1e7ae27fea5048c3f53e7330fa45",
                 user="67e16c86c43bdd3739a7b415",
-                business_id="4000000008542",
-                taxonomy_id="9346291",
-                resource_id="66e6b669bbe2b5c4faf5bdd7",
-                start_time="2025-05-15T08:20:00"
+                business_id=patient_business_id,
+                taxonomy_id=patient_taxonomy_id,
+                resource_id=patient_reource_id,
+                start_time=patient_date
             )
             print(f'{ book= }')
-            return f" {book}. {user_message}", ""
+            return f" {book}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
 
 
     except Exception as e:
@@ -465,10 +473,12 @@ def extract_time_from_message(message):
     return None
 
 def process_user_message(user_id, user_name, user_message, conversation_id):
-    enriched_message, client_business_id, client_resource_id, client_toxonomy_id, client_date = enrich_user_message(user_message,
-                                                                                                       conversation_id)
+    enriched_message, client_business_id, client_resource_id, client_toxonomy_id, client_date = enrich_user_message(user_message,conversation_id)
     response = ask_gemini(enriched_message)
-
+    client_business_id = Chat.get_patient_business_id(conversation_id)
+    client_resource_id = Chat.get_patient_resource_id(conversation_id)
+    client_toxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
+    client_date = Chat.get_patient_date(conversation_id)
     saved_convo_id = Chat.start_or_update_conversation(
         ownid=user_id,
         user_name=user_name,
@@ -485,3 +495,6 @@ def process_user_message(user_id, user_name, user_message, conversation_id):
         "message": response,
         "conversation_id": saved_convo_id,
     }
+
+
+
