@@ -439,3 +439,50 @@ def add_client(ID, business_id, client_name, client_surname, client_phone, clien
         print(f"Failed to add client: {response.status_code}")
         print(response.text)
 
+
+
+def confirm_appointment(appointment_id, client_id):
+    api_url="https://apiv2.gbooking.ru/rpc"
+    # Prepare the JSON payload for the request
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 19,  # Request ID, this can be modified to a dynamic value if necessary
+        "cred": {},
+        "method": "appointment.client_confirm_appointment",
+        "params": {
+            "appointment": {
+                "id": appointment_id
+            },
+            "client": {
+                "id": client_id
+            }
+        }
+    }
+
+    # Set the headers for the request
+    headers = {
+        'Content-Type': 'application/json',
+    }
+
+    try:
+        # Send POST request to the API
+        response = requests.post(api_url, data=json.dumps(payload), headers=headers)
+        # Check if the response is successful (HTTP 200)
+        response.raise_for_status()
+
+        # Parse the JSON response
+        response_data = response.json()
+
+        # Check if the response contains an error or result
+        if "result" in response_data:
+            return response_data["result"]
+        elif "error" in response_data:
+            error_code = response_data["error"].get("code")
+            error_message = response_data["error"].get("message")
+            return f"Error {error_code}: {error_message}"
+
+    except requests.exceptions.RequestException as e:
+        return f"Request failed: {str(e)}"
+    except ValueError as e:
+        return f"Error parsing response: {str(e)}"
+
