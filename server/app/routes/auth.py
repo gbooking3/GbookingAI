@@ -14,7 +14,7 @@ def signup():
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing request body"}), 400
-    required_fields = ["email", "phone", "ownid"]
+    required_fields = ["email", "phone", "ownid","clientid"]
     for field in required_fields:
         if not data.get(field):
             return jsonify({"error": f"Missing field: {field}"}), 400

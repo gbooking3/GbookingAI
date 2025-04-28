@@ -46,6 +46,7 @@ class User:
             "email": data["email"],
             "phone": data["phone"],
             "ownid": data["ownid"],
+            "clientid":data["clientid"],
             "is_active": True
         }
         return mongo.db.users.insert_one(user_data)

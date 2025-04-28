@@ -12,9 +12,9 @@ def register_user(data):
     email = data.get("email")
     phone = data.get("phone")
     ownid = data.get("ownid")
-
+    clientid=data.get("clientid")
     existing_user = User.find_by_ownid(ownid)
-
+    print(clientid)
     if existing_user:
         if not existing_user.get("is_active", True):
             # Account is inactive (soft-deleted)

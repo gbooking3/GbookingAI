@@ -20,34 +20,10 @@ english_to_hebrew = {
 }
 doctor_keywords = ["dr", "dr.", "doctor", "doctor.", "Dr", "Dr.", "Doctor", "Doctor.", "דר"]
 
-business_services_4000000008541 = [{'id': '3090100', 'name': 'Наращивание ногтей на руках'},
-                                   {'id': '3090000', 'name': 'Наращивание ногтей'},
-                                   {'id': '9265719', 'name': 'מעקב רפואי לנבדק עם קוצב לב דפ'},
-                                   {'id': '9265720', 'name': 'CONSULTATION CARDIOLOGY CLINIC'},
-                                   {'id': '9265721', 'name': 'TTE, child'},
-                                   {'id': '9265722', 'name': 'TTE  echocardiography'},
-                                   {'id': '9265723', 'name': 'ERGOMETERY'},
-                                   {'id': '9265724', 'name': 'Dobutamine stress echo'},
-                                   {'id': '9267352', 'name': 'בדיקת הולטר לב'}, {'id': '9371271', 'name': 'א.ק.ג'},
-                                   {'id': '9395698', 'name': 'אקוקרדיוגרפיה דרך הוושט, TEE'}]
-business_services_4000000008542 = [{'id': '3090100', 'name': 'Наращивание ногтей на руках'},
-                                   {'id': '3090000', 'name': 'Наращивание ногтей'},
-                                   {'id': '9265739', 'name': 'GASTROSTOMYA PEG'}, {'id': '9265740', 'name': 'ERCP'},
-                                   {'id': '9265741', 'name': 'כריתת פוליפ בשיטת EMR'},
-                                   {'id': '9265742', 'name': 'אזופגוסקופיה עם הזרקת חומר חוס'},
-                                   {'id': '9265743', 'name': 'Colonoscopy'}, {'id': '9265744', 'name': 'UGI endoscopy'},
-                                   {'id': '9265745', 'name': 'מבחן רפלוקס בושט עם ניטור PH'},
-                                   {'id': '9265746', 'name': 'Anorectal manometry'},
-                                   {'id': '9265747', 'name': 'Esophageal motility'},
-                                   {'id': '9267696', 'name': 'Endoscopy + Colonscopy'},
-                                   {'id': '9268431', 'name': 'בדיקת רופא מרדים'},
-                                   {'id': '9346291', 'name': 'רופא מרדים במכון גסטרו'},
-                                   {'id': '9384398', 'name': '44360'}]
-business_services_4000000008543 = [{'id': '3090100', 'name': 'Наращивание ногтей на руках'},
-                                   {'id': '3090000', 'name': 'Наращивание ногтей'},
-                                   {'id': '9265734', 'name': 'EMG, אלקטרומיוגרפיה ממוחשבת כמ'},
-                                   {'id': '9266556', 'name': 'EEG בשינה'}, {'id': '9277998', 'name': 'EEG רגיל'},
-                                   {'id': '9058391', 'name': '1'}]
+business_services_4000000008541 = get_services("4000000008541")
+business_services_4000000008542 = get_services("4000000008542")
+business_services_4000000008543 =   get_services("4000000008543")
+
 
 businesses_id = business_ids_from_network(networkID)
 businesses_names, businesses_names_ids = get_business_names(businesses_id)
@@ -61,7 +37,7 @@ def contains_fuzzy_keyword(message, target="services", threshold=0.8):
 
 def enrich_user_message(user_message, conversation_id):
     try:
-        if contains_fuzzy_keyword(user_message, target="departments") or contains_fuzzy_keyword(user_message,
+        if contains_fuzzy_keyword(user_message, target="Departments") or contains_fuzzy_keyword(user_message,
                                                                                                 target="business"):
             patient_business_id = Chat.get_patient_business_id(conversation_id)
             patient_reource_id = Chat.get_patient_resource_id(conversation_id)
@@ -74,7 +50,7 @@ def enrich_user_message(user_message, conversation_id):
             businesses_names_str = ", ".join(businesses_names)
             return f"These are our departments in the hosptial: {businesses_names_str}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
 
-        if contains_fuzzy_keyword(user_message, target="Cardiology") or contains_fuzzy_keyword(user_message,
+        if contains_fuzzy_keyword(user_message, target="Cardiology ") or contains_fuzzy_keyword(user_message,
                                                                                                target="30040"):
             patient_business_id = Chat.get_patient_business_id(conversation_id)
             patient_reource_id = Chat.get_patient_resource_id(conversation_id)
@@ -99,7 +75,7 @@ def enrich_user_message(user_message, conversation_id):
             doctorsOfBusiness_str = ", ".join([f"Dr. {doc['name']}" for doc in doctorsOfBusiness])
             return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
 
-        if contains_fuzzy_keyword(user_message, target="Gastroenterology") or contains_fuzzy_keyword(user_message,
+        if contains_fuzzy_keyword(user_message, target="Gastroenterology ") or contains_fuzzy_keyword(user_message,
                                                                                                      target="31200"):
             patient_business_id = Chat.get_patient_business_id(conversation_id)
             patient_reource_id = Chat.get_patient_resource_id(conversation_id)
@@ -125,7 +101,7 @@ def enrich_user_message(user_message, conversation_id):
             print("kkkkkkkkkkkkkkkkkkkkkkkkpatient_business_id_curr ", patient_business_id)
             return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
 
-        if contains_fuzzy_keyword(user_message, target="Neurology") or contains_fuzzy_keyword(user_message,
+        if contains_fuzzy_keyword(user_message, target="Neurology ") or contains_fuzzy_keyword(user_message,
                                                                                               target="30300"):
             patient_business_id = Chat.get_patient_business_id(conversation_id)
             patient_reource_id = Chat.get_patient_resource_id(conversation_id)

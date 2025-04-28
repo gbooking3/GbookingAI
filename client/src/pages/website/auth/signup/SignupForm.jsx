@@ -99,6 +99,7 @@ function SignupForm() {
         email: userEmail.value,
         phone: userPhone.value,
         name: userName.value,
+        clientid:1
       };
   
       const response = await apiPost(API_ENDPOINTS.AUTH.SIGNUP, user);
