@@ -81,6 +81,27 @@ class Chat:
         return None
 
     @staticmethod
+    def get_business_name(conversation_id):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            return chat.get("business_name")
+        return None
+    
+    @staticmethod
+    def get_resource_name(conversation_id):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            return chat.get("resource_name")
+        return None
+    
+    @staticmethod
+    def get_taxonomy_name(conversation_id):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            return chat.get("taxonomy_name")
+        return None
+
+    @staticmethod
     def set_patient_business_id(conversation_id, business_id):
         mongo.db.chats.update_one(
             {"_id": ObjectId(conversation_id)},
@@ -119,4 +140,28 @@ class Chat:
         mongo.db.chats.update_one(
             {"_id": ObjectId(conversation_id)},
             {"$set": {"date": date_and_time}}
+        )
+
+        
+    @staticmethod
+    def set_business_name(conversation_id, business_name):
+        mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"business_name": business_name}}
+        )
+
+
+    @staticmethod
+    def set_resource_name(conversation_id, resource_name):
+        mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"resource_name": resource_name}}
+        )
+
+
+    @staticmethod
+    def set_taxonomy_name(conversation_id, taxonomy_name):
+        mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"taxonomy_name": taxonomy_name}}
         )

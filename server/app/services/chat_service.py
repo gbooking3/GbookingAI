@@ -7,404 +7,246 @@ from app.utils.gbooking_helpers import get_services, get_doctors, get_available_
 from app.models.chat import Chat
 import re
 from datetime import datetime, timedelta
-
+import string
 
 networkID = 456
-businesses_ids = [4000000008541, 4000000008542, 4000000008543, 4000000008544]
 
 english_to_hebrew = {
     "Cardiology": "קרדיולוגיה",
     "Gastroenterology": "גסטרואנטרולוגיה",
     "Neurology": "נוירולוגיה",
-    "CT": "CT",  # if it's written the same
+    "CT": "CT",
 }
 doctor_keywords = ["dr", "dr.", "doctor", "doctor.", "Dr", "Dr.", "Doctor", "Doctor.", "דר"]
 
-business_services_4000000008541 = get_services("4000000008541")
-business_services_4000000008542 = get_services("4000000008542")
-business_services_4000000008543 =   get_services("4000000008543")
-
+service_lists = [
+    get_services(4000000008541),
+    get_services(4000000008542),
+    get_services(4000000008543),
+    get_services(4000000008544),
+]
 
 businesses_id = business_ids_from_network(networkID)
 businesses_names, businesses_names_ids = get_business_names(businesses_id)
 
-
 def contains_fuzzy_keyword(message, target="services", threshold=0.8):
+    translator = str.maketrans('', '', string.punctuation)
+    message = message.translate(translator)
     words = message.lower().split()
     matches = difflib.get_close_matches(target, words, n=1, cutoff=threshold)
     return bool(matches)
 
+def fetch_patient_info(conversation_id):
+    return (
+        Chat.get_patient_business_id(conversation_id),
+        Chat.get_patient_resource_id(conversation_id),
+        Chat.get_patient_toxonomy_id(conversation_id),
+        Chat.get_patient_date(conversation_id)
+    )
+
+def find_department_business(english_name):
+    hebrew_department = english_to_hebrew.get(english_name)
+    for dept_id, label in businesses_names_ids:
+        if hebrew_department in label:
+            return dept_id, label
+    return None, None
+
+def get_doctors_message(business_id, user_message):
+    doctors = get_business_doctors(business_id)
+    doctors_str = ", ".join([f"Dr. {doc['name']}" for doc in doctors])
+    return f"These are our available doctors: {doctors_str}. {user_message}, choose a doctor of these doctors please"
 
 def enrich_user_message(user_message, conversation_id):
     try:
-        if contains_fuzzy_keyword(user_message, target="Departments") or contains_fuzzy_keyword(user_message,
-                                                                                                target="business"):
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-
+        if contains_fuzzy_keyword(user_message, target="departments") or contains_fuzzy_keyword(user_message, target="business"):
+            patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date = fetch_patient_info(conversation_id)
             businesses_id = business_ids_from_network(networkID)
             businesses_names, _ = get_business_names(businesses_id)
-            print(f'{ businesses_names= }')
             businesses_names_str = ", ".join(businesses_names)
-            return f"These are our departments in the hosptial: {businesses_names_str}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
+            return (f"These are our departments in the hospital: {businesses_names_str}. {user_message}, "
+                    "if you would like to see the doctors of a specific department, write the name of the department"), \
+                   patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date
 
-        if contains_fuzzy_keyword(user_message, target="Cardiology ") or contains_fuzzy_keyword(user_message,
-                                                                                               target="30040"):
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
+        department_keywords = {
+            "Cardiology": ["Cardiology", "30040"],
+            "Gastroenterology": ["Gastroenterology", "31200"],
+            "Neurology": ["Neurology", "30300"],
+            "CT": ["CT", "46350"]
+        }
 
+        for department, keywords in department_keywords.items():    ## display doctors
+            if any(contains_fuzzy_keyword(user_message, target=kw) for kw in keywords):
+                patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date = fetch_patient_info(conversation_id)
+                matching_id, business_name = find_department_business(department)
+                if matching_id:
+                    Chat.set_patient_business_id(conversation_id, matching_id)
+                    Chat.set_business_name(conversation_id, business_name)
+                    message = get_doctors_message(matching_id, user_message)
+                    return message, matching_id, patient_resource_id, patient_taxonomy_id, patient_date
 
-            hebrew_department = english_to_hebrew.get("Cardiology")
-            matching_id = None
-            business_name = ""
-            for dept_id, label in businesses_names_ids:
-                if hebrew_department in label:
-                    matching_id = dept_id
-                    business_name = label
-                    Chat.set_patient_business_id(conversation_id, dept_id)
-                    break
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
+        if any(keyword in user_message for keyword in doctor_keywords):     # writing the doctor to get it's id
+                patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date = fetch_patient_info(conversation_id)
+                doctors_of_business = get_business_doctors(patient_business_id)
+                doctor_name = ""
 
-            doctorsOfBusiness = get_business_doctors(matching_id)
-            print("The doctors of the  ", business_name, " with the id ", matching_id, " are:")
-            print(f'{ doctorsOfBusiness= }')
-            doctorsOfBusiness_str = ", ".join([f"Dr. {doc['name']}" for doc in doctorsOfBusiness])
-            return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
+                for doctor in doctors_of_business:
+                    doctor_real_name = clean_name(doctor["name"])
+                    doctor_name_words = doctor_real_name.split()
 
-        if contains_fuzzy_keyword(user_message, target="Gastroenterology ") or contains_fuzzy_keyword(user_message,
-                                                                                                     target="31200"):
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
+                    if any(word in user_message for word in doctor_name_words):
+                        matched_doctor_id = doctor["id"]
+                        doctor_name = doctor["name"]
+                        Chat.set_patient_resource_id(conversation_id, matched_doctor_id)
+                        Chat.set_resource_name(conversation_id, doctor_name)
+                        break
 
+                patient_resource_id = Chat.get_patient_resource_id(conversation_id)
 
-            hebrew_department = english_to_hebrew.get("Gastroenterology")
-            matching_id = None
-            business_name = ""
-            for dept_id, label in businesses_names_ids:
-                if hebrew_department in label:
-                    matching_id = dept_id
-                    business_name = label
-                    Chat.set_patient_business_id(conversation_id, dept_id)
-                    break
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
+                return (
+                    f"This is the doctor you chose: {doctor_name}. {user_message}, would you like to know what are the services of this doctor?",
+                    patient_business_id,
+                    patient_resource_id,
+                    patient_taxonomy_id,
+                    patient_date,
+                )
 
-            doctorsOfBusiness = get_business_doctors(matching_id)
-            print("The doctors of the  ", business_name, " with the id ", matching_id, " are:")
-            print(f'{ doctorsOfBusiness= }')
-            doctorsOfBusiness_str = ", ".join([f"Dr. {doc['name']}" for doc in doctorsOfBusiness])
-            print("kkkkkkkkkkkkkkkkkkkkkkkkpatient_business_id_curr ", patient_business_id)
-            return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
+        if contains_fuzzy_keyword(user_message, target="services"):     #displaying the services of the doctor
+            patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date = fetch_patient_info(conversation_id)
+            doctor_services = get_doctor_services(patient_business_id, patient_resource_id)
 
-        if contains_fuzzy_keyword(user_message, target="Neurology ") or contains_fuzzy_keyword(user_message,
-                                                                                              target="30300"):
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
+            return (
+                f"These are our available doctor services: {doctor_services}. {user_message}, type the name of the service you want, please.",
+                patient_business_id,
+                patient_resource_id,
+                patient_taxonomy_id,
+                patient_date,
+            )
 
-
-            hebrew_department = english_to_hebrew.get("Neurology")
-            matching_id = None
-            business_name = ""
-            for dept_id, label in businesses_names_ids:
-                if hebrew_department in label:
-                    matching_id = dept_id
-                    business_name = label
-                    Chat.set_patient_business_id(conversation_id, dept_id)
-                    break
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-
-            doctorsOfBusiness = get_business_doctors(matching_id)
-            print("The doctors of the  ", business_name, " with the id ", matching_id, " are:")
-            print(f'{ doctorsOfBusiness= }')
-            doctorsOfBusiness_str = ", ".join([f"Dr. {doc['name']}" for doc in doctorsOfBusiness])
-            return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
-
-        if contains_fuzzy_keyword(user_message, target="CT") or contains_fuzzy_keyword(user_message, target="46350"):
-
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-
-
-            hebrew_department = english_to_hebrew.get("CT")
-            matching_id = None
-            business_name = ""
-            for dept_id, label in businesses_names_ids:
-                if hebrew_department in label:
-                    matching_id = dept_id
-                    business_name = label
-                    Chat.set_patient_business_id(conversation_id, dept_id)
-                    break
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-
-            doctorsOfBusiness = get_business_doctors(matching_id)
-            print("The doctors of the  ", business_name, " with the id ", matching_id, " are:")
-            print(f'{ doctorsOfBusiness= }')
-            doctorsOfBusiness_str = ", ".join([f"Dr. {doc['name']}" for doc in doctorsOfBusiness])
-            return f"These are our available doctors: {doctorsOfBusiness_str}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
-
-        if any(keyword in user_message for keyword in doctor_keywords):
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-
-
-            print(user_message)
-            print("business_id ", patient_business_id)
-            doctorsOfBusiness = get_business_doctors(patient_business_id)
-            print(doctorsOfBusiness)
-            doctor_name = ""
-            for doctor in doctorsOfBusiness:
-                if doctor["name"] in user_message:
-                    matched_doctor_id = doctor["id"]
-                    doctor_name = doctor["name"]
-                    Chat.set_patient_resource_id(conversation_id, matched_doctor_id)
-                    break
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            print("matched_doctor_id ", patient_reource_id, "matched_doctor_name ", doctor_name)
-            return f"This is the doctor you choose: {doctor_name}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
-
-        if contains_fuzzy_keyword(user_message, target="services"):
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-
-
-            print(user_message)
-
-            print("patient_business_id ", patient_business_id)
-            print("patient_reource_id ", patient_reource_id)
-            dcotor_services = get_doctor_services(patient_business_id, patient_reource_id)
-            print("dcotor_services ", dcotor_services)
-
-            return f"These are our available dcotor_services: {dcotor_services}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
-        
-        
-        extracted_time = extract_time_from_message(user_message)
-        print("extracted_time ", extracted_time)
+        extracted_time = extract_time_from_message(user_message)    #Time
         if extracted_time:
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-
+            patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date = fetch_patient_info(conversation_id)
             cleaned_date = patient_date.split('T')[0]
             Chat.set_patient_date(conversation_id, cleaned_date)
             Chat.set_patient_time(conversation_id, extracted_time)
-            hebrew_business_name = "Name not found"
-            for business_id, name in businesses_names_ids:
-                if business_id == patient_business_id:
-                    # Extract the name part after the number (if any)
-                    hebrew_business_name = name
-                    break
-            hebrew_name = hebrew_business_name.split(" - ")[1]
-            business_name = next((key for key, value in english_to_hebrew.items() if value == hebrew_name), "Business Name not found")
-            doctorsOfBusiness = get_business_doctors(patient_business_id)
-            doctor_name = next((doctor['name'] for doctor in doctorsOfBusiness if doctor['id'] == patient_reource_id), "Doctor not found")
-            dcotor_services = get_doctor_services(patient_business_id, patient_reource_id)
-            service_name = next((service['name'] for service in dcotor_services if service['id'] == patient_taxonomy_id), "Service not found")
+
+            business_name = Chat.get_business_name(conversation_id)
+            doctor_name = Chat.get_resource_name(conversation_id)
+            service_name = Chat.get_taxonomy_name(conversation_id)
             patient_date = Chat.get_patient_date(conversation_id)
 
             return (
-                f"To confirm your appointment, you have selected the following:\n"
+                f"To confirm your appointment, you selected:\n"
                 f"Department: {business_name}\n"
                 f"Doctor: {doctor_name}\n"
                 f"Service: {service_name}\n"
                 f"Date and Time: {patient_date} {extracted_time}\n"
-                f"Please review the details and let me know if everything looks correct.\n"
-                f"If this is correct, type 'book' or 'yes, appoint me' to confirm your appointment.\n"
-                f"{user_message}"
-            ), patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
+                f"Please review and type 'book' or 'yes, appoint me' to confirm.\n"
+                f"{user_message}",
+                patient_business_id,
+                patient_resource_id,
+                patient_taxonomy_id,
+                patient_date,
+            )
 
+        extracted_date = extract_date_from_message(user_message)    #DATE
+        if extracted_date:
+            patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date = fetch_patient_info(conversation_id)
+            Chat.set_patient_date(conversation_id, extracted_date)
 
-
-
-
-
-
-
-        print("user_message ", user_message)
-        print("extract_date_from_message(user_message) ", extract_date_from_message(user_message))
-        if extract_date_from_message(user_message):
-            print("hii")
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-            extracted_date = extract_date_from_message(user_message)
-            if extracted_date:
-                Chat.set_patient_date(conversation_id, extracted_date)
-            
             fromDate = extracted_date + "T00:00:00.000Z"
             toDate = add_one_day(extracted_date) + "T00:00:00.000Z"
 
-
             available_slots = get_available_slots(
                 business_id=str(patient_business_id),
-                resources_items=[
-                    {"id": patient_reource_id, "duration": 30}
-                ],
+                resources_items=[{"id": patient_resource_id, "duration": 30}],
                 taxonomy_ids=[patient_taxonomy_id],
-                from_date = fromDate,
-                to_date = toDate
+                from_date=fromDate,
+                to_date=toDate,
             )
+
             dates = []
             hours = {}
 
             for day in available_slots:
                 date = day.get("date")
                 resource_slots = day.get("slots", {})
-
-                all_hours = []
-                for resource_id, times in resource_slots.items():
-                    all_hours.extend(times)
+                all_hours = [time for times in resource_slots.values() for time in times]
 
                 if date and all_hours:
                     dates.append(date)
                     hours[date] = all_hours
 
-            print("Dates:", dates)
-            print("Hours:", hours)
-            
-            return f"The date you choose is {extracted_date} and the available hours are {hours}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, extracted_date
-
-        if any(service["name"] in user_message for service in business_services_4000000008542) or any(
-                service["name"] in user_message for service in business_services_4000000008543) or any(
-                service["name"] in user_message for service in business_services_4000000008541):
-            print(user_message)
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-
-
-            dcotor_services = get_doctor_services(patient_business_id, patient_reource_id)
-
-            service_name = ""
-            for service in dcotor_services:
-                if service["name"] in user_message:
-                    Chat.set_patient_taxonomy_id(conversation_id, service["id"])
-                    service_name = service["name"]
-                    break
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            print("The service that the paitent picked is: ", service_name, " and it's id is: ", patient_taxonomy_id)
-            return f"This is the service you choose: {service_name}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
-
-        if any(service["name"] in user_message for service in get_services(4000000008544)):
-            print(user_message)
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-
-
-            dcotor_services = get_doctor_services(patient_business_id, patient_reource_id)
-
-            print("business_id ", patient_business_id)
-            service_name = ""
-            for service in dcotor_services:
-                if service["name"] in user_message:
-                    Chat.set_patient_taxonomy_id(conversation_id, service["id"])
-                    service_name = service["name"]
-                    break
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-
-            return f"This is the service you choose: {service_name}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id ,patient_date
-
-        if contains_fuzzy_keyword(user_message, target="dates"):
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
-            patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-
-
-            print("buss id ", patient_business_id)
-            print("resource id ", patient_reource_id)
-            print("tax id ", patient_taxonomy_id)
-
-
-
-            dates = get_available_slots(
-                business_id=str(patient_business_id),
-                resources_items=[
-                    {"id": patient_reource_id, "duration": 30}
-                ],
-                taxonomy_ids=[patient_taxonomy_id],
-                from_date="2025-04-30T00:00:00.000Z",
-                to_date="2025-05-20T00:00:00.000Z"
+            return (
+                f"The date you chose is {extracted_date} and the available hours are {hours}. {user_message}, to complete the reservation, please enter the hour you want.",
+                patient_business_id,
+                patient_resource_id,
+                patient_taxonomy_id,
+                extracted_date,
             )
 
-            print(f'{ dates= }')
+        # Handle selecting a service from service lists
 
-            return f"These are our available dates and hours each seperated by half hour: {dates}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
-        print("user_message ", user_message)
-        print("extract_date_from_message(user_message) ", extract_date_from_message(user_message))
 
-    # 2. Match departments/businesses
-        
-        
-        # elif contains_fuzzy_keyword(user_message, target="services"):
-        #    services_list = get_services()
-        #    print(f'{ services_list= }')
-        #    services_str = ", ".join(services_list)
-        #    return f"We offer the following services: {services_str}. {user_message}", ""
+        if any(service["name"] in user_message for services in service_lists for service in services):      #get the service id
+            patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date = fetch_patient_info(conversation_id)
+            doctor_services = get_doctor_services(patient_business_id, patient_resource_id)
 
-        # elif contains_fuzzy_keyword(user_message, target="doctors"):
-        #    doctors = get_doctors()
-        #    print(f'{ doctors= }')
-        #    doctor_str = ", ".join([f"Dr. {doc['name']} ({doc['taxonomies']})" for doc in doctors])
-        #    return f"These are our available doctors: {doctor_str}. {user_message}", ""
+            service_name = ""
+            for service in doctor_services:
+                if service["name"] in user_message:
+                    Chat.set_patient_taxonomy_id(conversation_id, service["id"])
+                    Chat.set_taxonomy_name(conversation_id, service["name"])
+                    service_name = service["name"]
+                    break
 
-        # elif contains_fuzzy_keyword(user_message, target="dates") or contains_fuzzy_keyword(user_message, target="hours"):
-        #    dates = get_available_slots(
-        #    business_id="4000000008542",
-        #    resources_items=[
-        #        {"id": "67e16c86c43bdd3739a7b415", "duration": 30},
-        #        {"id": "66e6b669bbe2b5c4faf5bdd7", "duration": 30}
-        #    ],
-        #    taxonomy_ids=["9268431"],
-        #    from_date="2025-05-13T00:00:00.000Z",
-        #    to_date="2025-05-16T00:00:00.000Z"
-        #    )
-        #    print(f'{ dates= }')
-        #    return f"These are our available dates: {dates}. {user_message}", ""
-
-        if contains_fuzzy_keyword(user_message, target="book"):
-            patient_business_id = Chat.get_patient_business_id(conversation_id)
-            patient_reource_id = Chat.get_patient_resource_id(conversation_id)
             patient_taxonomy_id = Chat.get_patient_toxonomy_id(conversation_id)
-            patient_date = Chat.get_patient_date(conversation_id)
-            print("buss id ", patient_business_id)
-            print("resource id ", patient_reource_id)
-            print("tax id ", patient_taxonomy_id)
-            print("date :" ,patient_date)
-            book = reserve_appointment(
+
+            return (
+                f"This is the service you chose: {service_name}. {user_message}, if you would like to see the available dates, just write 'what are the available dates?'",
+                patient_business_id,
+                patient_resource_id,
+                patient_taxonomy_id,
+                patient_date,
+            )
+
+        if contains_fuzzy_keyword(user_message, target="dates"):    #get the dates
+            patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date = fetch_patient_info(conversation_id)
+            dates = get_available_slots(
+                business_id=str(patient_business_id),
+                resources_items=[{"id": patient_resource_id, "duration": 30}],
+                taxonomy_ids=[patient_taxonomy_id],
+                from_date="2025-04-30T00:00:00.000Z",
+                to_date="2025-05-20T00:00:00.000Z",
+            )
+
+            return (
+                f"These are our available dates and hours, each separated by half an hour: {dates}. {user_message}, to complete the reservation, please first enter the date you want.",
+                patient_business_id,
+                patient_resource_id,
+                patient_taxonomy_id,
+                patient_date,
+            )
+
+        if contains_fuzzy_keyword(user_message, target="book"):     #Book
+            patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date = fetch_patient_info(conversation_id)
+            booking = reserve_appointment(
                 token="02ccadf0487e1e7ae27fea5048c3f53e7330fa45",
                 user="67e16c86c43bdd3739a7b415",
                 business_id=patient_business_id,
                 taxonomy_id=patient_taxonomy_id,
-                resource_id=patient_reource_id,
-                start_time=patient_date
+                resource_id=patient_resource_id,
+                start_time=patient_date,
             )
-            print(f'{ book= }')
-            return f" {book}. {user_message}", patient_business_id, patient_reource_id, patient_taxonomy_id, patient_date
 
+            return f"{booking}. {user_message}", patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date
 
     except Exception as e:
         print("Error enriching message:", e)
 
     return user_message, ""
 
+def clean_name(name):
+    return name.replace("דר ", "").replace("Dr. ", "").strip()
 
 def extract_date_from_message(message):
     # Try to match standard YYYY-MM-DD format first
@@ -421,22 +263,18 @@ def extract_date_from_message(message):
         month_str, day, year = natural_match.groups()
 
         try:
-            # Parse the month name to month number
             date_obj = datetime.strptime(f"{month_str} {day} {year}", "%B %d %Y")
-            # Return it as 'YYYY-MM-DD' format
             return date_obj.strftime("%Y-%m-%d")
         except ValueError:
-            pass  # If parsing fails, ignore and continue
+            pass
 
     return None
 
 def add_one_day(date_str):
     # Parse the input date string (in format YYYY-MM-DD)
     date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-    
     # Add one day
     next_day = date_obj + timedelta(days=1)
-    
     # Return the new date as a string in "YYYY-MM-DD" format
     return next_day.strftime("%Y-%m-%d")
 
@@ -466,11 +304,7 @@ def process_user_message(user_id, user_name, user_message, conversation_id):
         taxonomy_id=client_toxonomy_id,
         date = client_date
     )
-
     return {
         "message": response,
         "conversation_id": saved_convo_id,
     }
-
-
-
