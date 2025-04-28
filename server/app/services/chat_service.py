@@ -133,7 +133,6 @@ def enrich_user_message(user_message, conversation_id):
             doctor_name = Chat.get_resource_name(conversation_id)
             service_name = Chat.get_taxonomy_name(conversation_id)
             patient_date = Chat.get_patient_date(conversation_id)
-
             return (
                 f"To confirm your appointment, you selected:\n"
                 f"Department: {business_name}\n"

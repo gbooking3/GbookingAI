@@ -1,6 +1,11 @@
 from app.extensions import mongo
+from pymongo import MongoClient, ReturnDocument
+
+
 
 class User:
+
+
     @staticmethod
     def find_by_ownid(ownid):
         return mongo.db.users.find_one({"ownid": ownid})
@@ -41,12 +46,20 @@ class User:
 
     @staticmethod
     def create_user(data):
+        counters = mongo.db.counters
+        print(counters)
+        # Increment the clientid atomically and get the updated counter
+        counter = counters.find_one_and_update(
+            {"_id": "userClientId"},
+            {"$inc": {"seq": 1}},
+            return_document=True)
+        new_clientid = counter["seq"]
         user_data = {
             "name": data["name"],
             "email": data["email"],
             "phone": data["phone"],
             "ownid": data["ownid"],
-            "clientid":data["clientid"],
+            "clientid": new_clientid,
             "is_active": True
         }
         return mongo.db.users.insert_one(user_data)
@@ -67,3 +80,6 @@ class User:
             "phone": user["phone"],
             "ownid": user["ownid"]
         }
+
+
+
