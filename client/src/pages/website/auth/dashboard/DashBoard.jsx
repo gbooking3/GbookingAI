@@ -9,7 +9,7 @@ import Cookies from "universal-cookie";
 function ChatBot() {
   const navigateTo = useNavigate();
   const [messages, setMessages] = useState([
-    { from: "bot", text: " שלום אני המזכירה שלך מבוסס פינה מלאכותחת להזמנת תורים איך אני יכולה לעזור ? " }
+    { from: "bot", text: "Hello, I'm your secretary based in AI, a crafty place for booking appointments. How can I help?" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
