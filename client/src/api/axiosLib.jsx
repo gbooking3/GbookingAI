@@ -41,13 +41,13 @@ import axios from "axios";
 
 // Create and export the custom axios instance
 const api = axios.create({
-  //baseURL: "http://localhost:5000/api/v1/", // Update this to your actual API base URL
-  baseURL: "http://10.0.0.21:5000/api/v1/", // Update this to your actual API base URL
+  baseURL: "http://localhost:5000/api/v1/", // Update this to your actual API base URL
+  //baseURL: "http://10.0.0.21:5000/api/v1/", // Update this to your actual API base URL
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000,
+  timeout: 20000,
 });
 
 // Request interceptor: add access token

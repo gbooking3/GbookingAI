@@ -144,7 +144,7 @@ def get_doctors():
                 "taxonomies": worker.get("taxonomies", "Doctor"),
                 "id": worker.get("id", "Doctor")
             })
-    print(doctors)
+    #print(doctors)
     return doctors
 
 
@@ -165,7 +165,7 @@ def get_business_doctors(business_id):
                 "taxonomies": worker.get("taxonomies", "Doctor"),
                 "id": worker.get("id", "Doctor")
             })
-    print(doctors)
+    #print(doctors)
     return doctors
 
 

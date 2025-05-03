@@ -23,7 +23,7 @@ class Chat:
                         "business_id": business_id,
                         "resource_id": resource_id,
                         "taxonomy_id": taxonomy_id,
-                        "date": date
+                        "date": date,
                     }
                 }
             )
@@ -37,11 +37,28 @@ class Chat:
                 "business_id": business_id,
                 "resource_id": resource_id,
                 "taxonomy_id": taxonomy_id,
-                "date": date
+                "date": date,
+                "time": None,
+                "context_stage": "start"  
 
             }
             result = mongo.db.chats.insert_one(chat_entry)
             return str(result.inserted_id)
+
+
+    @staticmethod
+    def get_context_stage(conversation_id):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            return chat.get("context_stage")
+        return None
+
+    @staticmethod
+    def set_context_stage(conversation_id, context_stage):
+        mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"context_stage": context_stage}}
+        )
 
     @staticmethod
     def get_user_chats(ownid):
@@ -135,12 +152,42 @@ class Chat:
         if chat:
             date = chat.get("date")
         print("date ", date)
-        date_and_time = date + "T" + str(time) + ":00"
-        print("date_and_time ",date_and_time)
-        mongo.db.chats.update_one(
+        if not date:
+            mongo.db.chats.update_one(
             {"_id": ObjectId(conversation_id)},
-            {"$set": {"date": date_and_time}}
+            {"$set": {"date": None}}
         )
+        if not time:
+             mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"time": time}}
+            )
+        else:
+            time = "T" + str(time) + ":00"
+            mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"time": time}}
+        )
+        
+    @staticmethod
+    def get_patient_time(conversation_id):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            return chat.get("time")
+        return None
+            
+    @staticmethod
+    def set_patient_final_date(conversation_id, date, time):
+        chat = mongo.db.chats.find_one({"_id": ObjectId(conversation_id)})
+        if chat:
+            date = chat.get("date")
+            time = chat.get("time")
+            final = date + time
+            mongo.db.chats.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"date": final}}
+        )
+
 
         
     @staticmethod

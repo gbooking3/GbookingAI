@@ -27,11 +27,15 @@ def process_chat_request():
 
     print(f"[Request] User: {user_name}, ID: {user_id}, Msg: {user_message}, Conversation ID: {conversation_id}")
 
+    
     response_data = process_user_message(
         user_id=user_id,
         user_name=user_name,
         user_message=user_message,
         conversation_id=conversation_id
     )
+
+
+
 
     return jsonify(response_data)
