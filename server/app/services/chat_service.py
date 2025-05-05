@@ -990,7 +990,7 @@ def enrich_user_message(user_message, conversation_id):
 
 
 
-        if intent == "start_booking":
+        if intent == "start_booking" or intent == "choose_department":
             if context_stage == "start":
                 response = (
                     "Great! Here's how scheduling works:\n"
@@ -1018,7 +1018,7 @@ def enrich_user_message(user_message, conversation_id):
                         break
             print("selected_department ",selected_department)
 
-            if selected_department:
+            if selected_department: # selected_department need to check
                 #Chat.set_context_stage(conversation_id, "choose_doctor")
                 patient_business_id = name_to_id.get(selected_department)
                 Chat.set_patient_business_id(conversation_id,str(patient_business_id))
