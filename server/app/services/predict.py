@@ -28,7 +28,7 @@ texts = [
     "i want to set an appointment", "hello I want to set an appointment",
     "I want to book an appointment", "I need to make an appointment",
     "How do I schedule a visit?", "Help me book a doctor",
-    "hello, how are you?", "hello my friend", "Are you feeling good today?",
+    "hello","hello, how are you?", "hello my friend", "Are you feeling good today?",
     "departments", "I want to see a cardiologist", "show me departments",
     "קרדיולוגיה", "cardiology",
     "גסטרואנטרולוגיה", "gastroenterology",
@@ -37,9 +37,10 @@ texts = [
 ]
 labels = [
     "confirmation", "confirmation", "confirmation", "confirmation", "confirmation", "confirmation",
-    "start_booking", "start_booking", "start_booking", "start_booking",
     "start_booking", "start_booking",
-    "chitchat", "chitchat", "chitchat",
+    "start_booking", "start_booking",
+    "start_booking", "start_booking",
+    "chitchat","chitchat", "chitchat", "chitchat",
     "choose_department", "choose_department", "choose_department",
     "choose_department", "choose_department",
     "choose_department", "choose_department",

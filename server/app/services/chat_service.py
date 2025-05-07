@@ -875,9 +875,9 @@ def enrich_user_message(user_message, conversation_id):
         print("intent ",intent)
         print("context_stage ", context_stage)
         response = ""
-        if intent == "chitchat" and context_stage == "start":
+        #if intent == "chitchat" and context_stage == "start":
 
-            return user_message, patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date
+        #    return user_message, patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date
 
         if contains_fuzzy_keyword(user_message, "change department"):
             print("change department")
@@ -990,10 +990,11 @@ def enrich_user_message(user_message, conversation_id):
 
 
 
-        if intent == "start_booking" or intent == "choose_department":
+        if intent == "start_booking" or intent == "choose_department" or intent == "chitchat":
             if context_stage == "start":
+                print("im here")
                 response = (
-                    "Great! Here's how scheduling works:\n"
+                    "Hello!, i'm here to help you to schedule an appintment, Here's how scheduling works:\n"
                     "1️⃣ Choose a department\n"
                     "2️⃣ Pick a doctor\n"
                     "3️⃣ Select a service\n"
@@ -1027,16 +1028,18 @@ def enrich_user_message(user_message, conversation_id):
                 print("patient_business_id ", patient_business_id)
                 doctors = bussiness_and_its_doctors.get(selected_department, [])
                 if not doctors:
-                    return f"Sorry, no doctors found in {selected_department}", str(patient_business_id), None, None, None
+                    return f"Sorry, no availble doctors found in the selected department", str(patient_business_id), None, None, None
                 doctor_names = "\n".join([doc["name"] for doc in doctors])
                 print("doctor_names ", doctor_names)
                 response = f"Here are the available doctors in {selected_department}:\n{doctor_names}\n➡️ Please choose a doctor by name. \n➡️ {add_Edit_choices('choose_department')}"
                 return response, str(patient_business_id), None, None, None
             else:
+                Chat.set_context_stage(conversation_id, "choose_department")
                 return "Sorry, I didn't recognize that department. Please choose from the list shown again." +"\n".join(businesses_names), None, None, None, None
         doctors = bussiness_and_its_doctors.get((Chat.get_business_name(conversation_id)), [])
         if not doctors:
-            return f"Sorry, no doctors found in {selected_department}", str(patient_business_id), None, None, None
+            Chat.set_context_stage(conversation_id, "choose_department")
+            return f"Sorry, no available doctors found in the selected department"+ add_Edit_choices("choose_department"), str(patient_business_id), None, None, None
         doctor_names = "\n".join([doc["name"] for doc in doctors])
         doctor_names_only = [doc["name"] for doc in doctors if doc["name"]]
 
@@ -1070,6 +1073,7 @@ def enrich_user_message(user_message, conversation_id):
                 Chat.set_resource_name(conversation_id, selected_doctor)
 
                 if not services:
+                    Chat.set_context_stage(conversation_id, "choose_doctor")
                     return f"Sorry, {selected_doctor} has no services available at the moment.", patient_business_id, str(resource_id), None, None
                 print("services ",services)
                 service_list = "\n".join([f"- {s['name']}" for s in services])
@@ -1087,6 +1091,8 @@ def enrich_user_message(user_message, conversation_id):
                 print(add_Edit_choices('choose_doctor'))
                 print("wooooooo")
                 edit_choices = add_Edit_choices('choose_doctor')
+                Chat.set_context_stage(conversation_id, "choose_doctor")
+
                 return (
                     f"Sorry, I couldn't match that doctor. Please choose a doctor from the list again.\n{doctor_names}\n{edit_choices}",
                     patient_business_id, None, None, None
@@ -1095,7 +1101,8 @@ def enrich_user_message(user_message, conversation_id):
         doctor_info = doctor_and_services[Chat.get_resource_name(conversation_id)]
         services = doctor_info["services"]
         if not services:
-            return f"Sorry, the doctor you selected has no services available at the moment.", patient_business_id, patient_resource_id, None, None
+            Chat.set_context_stage(conversation_id, "choose_doctor")
+            return f"Sorry, the doctor you selected has no available services at the moment." + add_Edit_choices("choose_doctor"), patient_business_id, patient_resource_id, None, None
         print("service_list ",services)
         if context_stage == "choose_service":
             selected_service = None
@@ -1120,7 +1127,7 @@ def enrich_user_message(user_message, conversation_id):
                 resource_id = Chat.get_patient_resource_id(conversation_id)
                 taxonomy_id = selected_service_id
                 fromDate = "2025-04-30T00:00:00.000Z"
-                toDate = "2025-05-20T00:00:00.000Z"
+                toDate = "2025-05-07T00:00:00.000Z"
                 slots_data = get_available_slots(
                     business_id=patient_business_id,
                     resources_items=[{"id": patient_resource_id, "duration": 30}],
@@ -1129,7 +1136,8 @@ def enrich_user_message(user_message, conversation_id):
                     to_date=toDate,
                 )
                 if not slots_data:
-                    return f"Sorry, there are no available slots for '{selected_service}' in the next 10 days.\n please select the service again {services}", business_id, resource_id, None, None
+                    Chat.set_context_stage(conversation_id, "choose_service")
+                    return f"Sorry, there are no available slots for the selected service in the next 10 days.\n please select the service again {services}" + add_Edit_choices("choose_service"), business_id, resource_id, None, None
                 slot_lines = []
                 for entry in slots_data:
                     date = entry["date"]
@@ -1141,7 +1149,7 @@ def enrich_user_message(user_message, conversation_id):
 
 
         fromDate = "2025-04-30T00:00:00.000Z"
-        toDate = "2025-05-20T00:00:00.000Z"
+        toDate = "2025-05-07T00:00:00.000Z"
         slots_data = get_available_slots(
             business_id=patient_business_id,
             resources_items=[{"id": patient_resource_id, "duration": 30}],
@@ -1150,7 +1158,8 @@ def enrich_user_message(user_message, conversation_id):
             to_date=toDate,
         )
         if not slots_data:
-            return f"Sorry, there are no available slots for '{selected_service}' in the next 10 days.\n please select the service again {services}", business_id, resource_id, None, None
+            Chat.set_context_stage(conversation_id, "choose_service")
+            return f"Sorry, there are no available slots for the selected service in the next 10 days.\n please select the service again " + add_Edit_choices("choose_service"), business_id, resource_id, None, None
         slot_dates = []
         slot_lines = []
         for entry in slots_data:
@@ -1187,9 +1196,11 @@ def enrich_user_message(user_message, conversation_id):
                     )
                     return response, patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date
             else:
+                Chat.set_context_stage(conversation_id, "choose_date")
                 return (
                     f"❌ Couldn't recognize a valid available date in your message.\n"
-                    f"📅 Please choose one of the following dates:\n{slot_dates}",
+                    f"📅 Please choose one of the following dates:\n{slot_dates}"
+                    f"{add_Edit_choices('choose_date')}",
                     patient_business_id, patient_resource_id, patient_taxonomy_id, None
                 )
 
@@ -1227,9 +1238,12 @@ def enrich_user_message(user_message, conversation_id):
 
 
             else:
+                edit_choices = add_Edit_choices('choose_time')
+                Chat.set_context_stage(conversation_id, "choose_time")
                 return (
                     f"❌ Couldn't recognize a valid available time in your message.\n"
-                    f"📅 Please choose one of the following dates:\n{available_times}",
+                    f"📅 Please choose one of the following dates:\n{available_times}"
+                    f"\n{edit_choices}",
                     patient_business_id, patient_resource_id, patient_taxonomy_id, patient_date
                 )
 
