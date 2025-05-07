@@ -304,8 +304,8 @@ def enrich_user_message(user_message, conversation_id):
         Chat.set_patient_date(conversation_id, None)
         Chat.set_patient_time(conversation_id, None)
         Chat.set_context_stage(conversation_id, "choose_date")
-        fromDate = "2025-04-30T00:00:00.000Z"
-        toDate = "2025-05-20T00:00:00.000Z"
+        fromDate = "2025-05-10T00:00:00.000Z"
+        toDate = "2025-06-03T00:00:00.000Z"
         slots_data = get_available_slots(
             business_id=patient_business_id,
             resources_items=[{"id": patient_resource_id, "duration": 30}],
@@ -327,8 +327,8 @@ def enrich_user_message(user_message, conversation_id):
     elif contains_fuzzy_keyword(user_message, "change hour"):
         Chat.set_patient_time(conversation_id, None)
         Chat.set_context_stage(conversation_id, "choose_time")
-        fromDate = "2025-04-30T00:00:00.000Z"
-        toDate = "2025-05-20T00:00:00.000Z"
+        fromDate = "2025-05-10T00:00:00.000Z"
+        toDate = "2025-06-03T00:00:00.000Z"
         slots_data = get_available_slots(
             business_id=patient_business_id,
             resources_items=[{"id": patient_resource_id, "duration": 30}],
@@ -494,8 +494,8 @@ def enrich_user_message(user_message, conversation_id):
             Chat.set_taxonomy_name(conversation_id, selected_service)
             resource_id = Chat.get_patient_resource_id(conversation_id)
             taxonomy_id = selected_service_id
-            fromDate = "2025-04-30T00:00:00.000Z"
-            toDate = "2025-05-20T00:00:00.000Z"
+            fromDate = "2025-05-10T00:00:00.000Z"
+            toDate = "2025-06-03T00:00:00.000Z"
             slots_data = get_available_slots(
                 business_id=patient_business_id,
                 resources_items=[{"id": patient_resource_id, "duration": 30}],
@@ -515,8 +515,8 @@ def enrich_user_message(user_message, conversation_id):
                 slot_lines) + "\nplease select a date" + add_Edit_choices("choose_service")
             return response, business_id, resource_id, taxonomy_id, None
 
-    fromDate = "2025-04-30T00:00:00.000Z"
-    toDate = "2025-05-20T00:00:00.000Z"
+    fromDate = "2025-05-10T00:00:00.000Z"
+    toDate = "2025-06-03T00:00:00.000Z"
     slots_data = get_available_slots(
         business_id=patient_business_id,
         resources_items=[{"id": patient_resource_id, "duration": 30}],
@@ -932,8 +932,8 @@ def enrich_user_message(user_message, conversation_id):
             Chat.set_patient_date(conversation_id, None)
             Chat.set_patient_time(conversation_id, None)
             Chat.set_context_stage(conversation_id, "choose_date")
-            fromDate = "2025-04-30T00:00:00.000Z"
-            toDate = "2025-05-20T00:00:00.000Z"
+            fromDate = "2025-05-10T00:00:00.000Z"
+            toDate = "2025-06-03T00:00:00.000Z"
             slots_data = get_available_slots(
                     business_id=patient_business_id,
                     resources_items=[{"id": patient_resource_id, "duration": 30}],
@@ -954,8 +954,8 @@ def enrich_user_message(user_message, conversation_id):
         elif contains_fuzzy_keyword(user_message, "change hour"):
             Chat.set_patient_time(conversation_id, None)
             Chat.set_context_stage(conversation_id, "choose_time")
-            fromDate = "2025-04-30T00:00:00.000Z"
-            toDate = "2025-05-20T00:00:00.000Z"
+            fromDate = "2025-05-10T00:00:00.000Z"
+            toDate = "2025-06-03T00:00:00.000Z"
             slots_data = get_available_slots(
                     business_id=patient_business_id,
                     resources_items=[{"id": patient_resource_id, "duration": 30}],
@@ -1126,8 +1126,8 @@ def enrich_user_message(user_message, conversation_id):
                 Chat.set_taxonomy_name(conversation_id, selected_service)
                 resource_id = Chat.get_patient_resource_id(conversation_id)
                 taxonomy_id = selected_service_id
-                fromDate = "2025-04-30T00:00:00.000Z"
-                toDate = "2025-05-07T00:00:00.000Z"
+                fromDate = "2025-05-10T00:00:00.000Z"
+                toDate = "2025-06-03T00:00:00.000Z"
                 slots_data = get_available_slots(
                     business_id=patient_business_id,
                     resources_items=[{"id": patient_resource_id, "duration": 30}],
@@ -1148,8 +1148,8 @@ def enrich_user_message(user_message, conversation_id):
                 return response, business_id, resource_id, taxonomy_id, None
 
 
-        fromDate = "2025-04-30T00:00:00.000Z"
-        toDate = "2025-05-07T00:00:00.000Z"
+        fromDate = "2025-05-10T00:00:00.000Z"
+        toDate = "2025-06-03T00:00:00.000Z"
         slots_data = get_available_slots(
             business_id=patient_business_id,
             resources_items=[{"id": patient_resource_id, "duration": 30}],
